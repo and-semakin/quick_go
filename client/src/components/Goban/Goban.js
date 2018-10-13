@@ -3,6 +3,8 @@ import React, { Component } from 'react';
 import GobanRow from './GobanRow/GobanRow';
 import GobanPoint from './GobanPoint/GobanPoint';
 
+import './Goban.css';
+
 class Goban extends Component {
     drawGoban = () => {
         const gobanRows = [];
@@ -39,7 +41,7 @@ class Goban extends Component {
         const goban = this.drawGoban();
 
         return (
-            <div>
+            <div className="goban">
                 {goban}
             </div>
         );
