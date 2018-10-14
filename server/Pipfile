@@ -4,10 +4,15 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-tornado = "*"
 mypy = "*"
+pylint = "==2.1.1"
+aiopg = {extras = ["sa"]}
+sqlalchemy = "*"
+aiohttp = "*"
+trafaret-config = "*"
 
 [dev-packages]
+aiohttp-devtools = "*"
 
 [requires]
 python_version = "3.6"

@@ -1,0 +1,11 @@
+postgres:
+  database: go
+  user: go_user
+  password: go_password
+  host: postgres
+  port: 5432
+  minsize: 3
+  maxsize: 10
+
+host: localhost
+port: 80
