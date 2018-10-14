@@ -1,5 +1,6 @@
 import logging
 import sys
+import collections
 
 from aiohttp import web
 
@@ -13,6 +14,7 @@ def init_app(argv=None):
     app = web.Application()
 
     app['config'] = get_config(argv)
+    app['ws'] = collections.defaultdict(list)
 
     # create db connection on startup, shutdown on exit
     app.on_startup.append(init_pg)

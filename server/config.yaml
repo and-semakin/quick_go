@@ -7,5 +7,5 @@ postgres:
   minsize: 3
   maxsize: 10
 
-host: localhost
+host: 0.0.0.0
 port: 80
