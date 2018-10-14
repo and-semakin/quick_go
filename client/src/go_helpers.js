@@ -104,8 +104,6 @@ export const goban2boolarray = (goban) => {
 export const isGobanEqual = (goban1, goban2) => {
     goban1 = goban2boolarray(goban1);
     goban2 = goban2boolarray(goban2);
-    console.log('goban1', goban1);
-    console.log('goban2', goban2);
     return goban1.length === goban2.length && goban1.every((goban1row, i) => {
         const goban2row = goban2[i];
         return goban1row.length === goban2row.length && goban1row.every((value, j) => value === goban2row[j]);
