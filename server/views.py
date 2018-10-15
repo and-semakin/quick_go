@@ -78,12 +78,15 @@ async def websocket(request):
                 # (move_no, x, y, pass)
                 parts = msg.data.split()
                 print(parts)
-                move_no, x, y = int(parts[0]), int(parts[1]), int(parts[2])
-                _pass = parts[3].lower() in ['1', 't', 'true', 'y', 'yes']
-                async with request.app['db'].acquire() as conn:
-                    move_no, x, y, _pass = await db.do_move(conn, game_id, x, y, _pass)
-                for _ws in request.app['ws'][game_id]:
-                    await _ws.send_str(f'{move_no} {x} {y} {int(_pass)}')
+                try:
+                    move_no, x, y = int(parts[0]), int(parts[1]), int(parts[2])
+                    _pass = parts[3].lower() in ['1', 't', 'true', 'y', 'yes']
+                    async with request.app['db'].acquire() as conn:
+                        move_no, x, y, _pass = await db.do_move(conn, game_id, x, y, _pass)
+                    for _ws in request.app['ws'][game_id]:
+                        await _ws.send_str(f'{move_no} {x} {y} {int(_pass)}')
+                except (ValueError, IndexError) as e:
+                    continue
 
     print('Websocket connection closed')
     return ws

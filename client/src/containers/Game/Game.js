@@ -23,7 +23,6 @@ class Game extends Component {
         const link = this.props.match.params.link;
         axios.get(`/api/game/${link}`)
             .then(response => {
-                console.log(response);
                 const {
                     finished,
                     gobanSize,
@@ -73,6 +72,59 @@ class Game extends Component {
             .catch(error => {
                 console.log(error);
             })
+
+        this.socket = new WebSocket(`ws://${document.location.host}/api/ws/${link}`)
+        this.socket.addEventListener('open', () => {
+            console.log('WebSocket connected.');
+        });
+
+        this.socket.addEventListener('message', this.onWebSockerMessageHandler)
+    }
+
+    onWebSockerMessageHandler = (event) => {
+        console.log('<- ', event.data);
+        let [order, x, y, pass] = event.data.split(" ");
+        order = Number(order);
+        x = Number(x);
+        y = Number(y);
+        pass = Boolean(Number(pass));
+        
+        const {goban, captured, error} = this.updateGoban(
+            this.state.gobanHistory[this.state.move],
+            this.state.move,
+            x, y, pass
+        );
+        if (error) {
+            console.log(error);
+            return;
+        }
+
+        // ko rule
+        if (!pass && this.state.move > 0 && isGobanEqual(goban, this.state.gobanHistory[this.state.move - 1])) {
+            console.log('Ko rule violation detected!');
+            return;
+        }
+
+        console.log(this.state.gobanHistory);
+        console.log(goban);
+
+        // update goban
+        this.setState(state => {
+            let capturedBlack = state.capturedBlack;
+            let capturedWhite = state.capturedWhite;
+            if (order % 2 === 0) {
+                capturedBlack = capturedBlack + captured;
+            } else {
+                capturedWhite = capturedWhite + captured;
+            }
+
+            return {
+                move: order + 1,
+                gobanHistory: state.gobanHistory.concat([goban]),
+                capturedBlack: capturedBlack,
+                capturedWhite: capturedWhite,
+            };
+        });
     }
 
     updateGoban = (sourceGoban, move, x, y, pass) => {
@@ -121,48 +173,41 @@ class Game extends Component {
     };
 
     doMove = (x, y, pass = false) => {
-        const goban = this.state.gobanHistory[this.state.move]
+        const move = this.state.move;
+        if (move % 2 === Number(this.state.isBlack)) {
+            console.log('Its not your turn!');
+            return;
+        }
 
-        // kill all the other stones around if needed
-        const { goban: newGoban, captured, error } = this.updateGoban(goban, this.state.move, x, y, pass);
-
+        const {goban, captured, error} = this.updateGoban(
+            this.state.gobanHistory[move],
+            move,
+            x, y, pass
+        );
         if (error) {
             console.log(error);
             return;
         }
 
         // ko rule
-        if (this.state.move > 0 && isGobanEqual(newGoban, this.state.gobanHistory[this.state.move - 1])) {
+        if (!pass && move > 0 && isGobanEqual(goban, this.state.gobanHistory[move - 1])) {
             console.log('Ko rule violation detected!');
             return;
         }
 
-        // update goban
-        this.setState(state => {
-            let capturedBlack = state.capturedBlack;
-            let capturedWhite = state.capturedWhite;
-            if (state.move % 2 === 0) {
-                capturedBlack = state.capturedBlack + captured;
-            } else {
-                capturedWhite = state.capturedWhite + captured;
-            }
-
-            return {
-                move: state.move + 1,
-                gobanHistory: state.gobanHistory.concat([newGoban]),
-                capturedBlack: capturedBlack,
-                capturedWhite: capturedWhite,
-            };
-        });
+        const msg = `${Number(move)} ${Number(x)} ${Number(y)} ${Number(pass)}`;
+        console.log('->', msg);
+        this.socket.send(msg);
     }
 
     render() {
         const next_move = (this.state.move % 2 === 0) ? 'черные' : 'белые'
+        const next_move_you = (this.state.move % 2 !== Number(this.state.isBlack)) ? 'ты' : 'не ты'
         let goban = null;
         if (this.state.gobanSize > 0) {
             goban = (
                 <>
-                    <p>Ход №{this.state.move}, ходят {next_move}</p>
+                    <p>Ход №{this.state.move}, ходят {next_move} ({next_move_you})</p>
                     <p>В плену у черных: {this.state.capturedBlack}</p>
                     <p>В плену у белых: {this.state.capturedWhite}</p>
                     <Goban

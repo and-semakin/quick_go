@@ -6,6 +6,13 @@ import GobanPoint from './GobanPoint/GobanPoint';
 import './Goban.css';
 
 class Goban extends Component {
+    state = {};
+
+    // static getDerivedStateFromProps(props, state) {
+    //     console.log('[Goban Update]', props);
+    //     return state;
+    // }
+
     drawGoban = () => {
         const gobanRows = [];
 

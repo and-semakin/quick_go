@@ -14,7 +14,7 @@ class App extends Component {
             <div>
               <h1>New game</h1>
               <p>Nothing here yet.</p>
-              <Link to="/game/a0eb563da2d278e448943b4372f831a6">Go game</Link>
+              <Link to="/game/9d52fda6d8fbec80b75ef9de81bf774f">Go game</Link>
             </div>
           )} />
         </div>
