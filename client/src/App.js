@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import './App.css';
+import { BrowserRouter, Route } from 'react-router-dom';
 
 import Game from './containers/Game/Game';
-import { BrowserRouter, Route, Link } from 'react-router-dom';
+import NewGame from './components/NewGame/NewGame';
+import './App.css';
 
 class App extends Component {
   render() {
@@ -10,13 +11,7 @@ class App extends Component {
       <BrowserRouter>
         <div className="App">
           <Route path='/game/:link' component={Game} />
-          <Route exact path='/' render={() => (
-            <div>
-              <h1>New game</h1>
-              <p>Nothing here yet.</p>
-              <Link to="/game/9d52fda6d8fbec80b75ef9de81bf774f">Go game</Link>
-            </div>
-          )} />
+          <Route exact path='/' component={NewGame} />
         </div>
       </BrowserRouter>
     );

@@ -179,7 +179,7 @@ class Game extends Component {
             return;
         }
 
-        const {goban, captured, error} = this.updateGoban(
+        const {goban, error} = this.updateGoban(
             this.state.gobanHistory[move],
             move,
             x, y, pass
