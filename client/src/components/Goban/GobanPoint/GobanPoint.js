@@ -19,10 +19,18 @@ const GobanPoint = (props) => {
         classes.push('goban-point-right-column');
     }
 
-    let stone = (
-        <div
-            className={["goban-point-emptiness", (props.move % 2 === 0) ? 'empty-black' : 'empty-white'].join(' ')} />
+    let stone = null;
+
+    if (props.showHover) {
+        stone = (
+            <div
+                className={[
+                    "goban-point-emptiness",
+                    (props.move % 2 === 0) ? 'empty-black' : 'empty-white'
+                ].join(' ')}
+            />
         );
+    }
 
     if (props.stone) {
         stone = <GobanStone color={props.stone} />

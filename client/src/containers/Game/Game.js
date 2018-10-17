@@ -4,7 +4,7 @@ import Button from '@material-ui/core/Button';
 import Goban from '../../components/Goban/Goban';
 import axios from 'axios';
 
-import { xy2n, findGroup, captureGroup, findLiberties, isGobanEqual } from '../../go_helpers';
+import { isGobanEqual, updateGoban } from '../../go_helpers';
 
 class Game extends Component {
     state = {
@@ -19,7 +19,6 @@ class Game extends Component {
     }
 
     componentDidMount() {
-        console.log('Requesting game info...');
         const link = this.props.match.params.link;
         axios.get(`/api/game/${link}`)
             .then(response => {
@@ -36,17 +35,13 @@ class Game extends Component {
                 let capturedBlack = 0;
                 let capturedWhite = 0;
 
-                console.log(-1, gobanHistory);
-
                 moves.forEach((move, index) => {
-                    console.log(index, gobanHistory);
-
                     const {
                         order,
                         pass,
                         x, y
                     } = move;
-                    const {goban: newGoban, captured, error} = this.updateGoban(goban, order, x, y, pass);
+                    const {goban: newGoban, captured, error} = updateGoban(goban, order, x, y, pass);
                     if (error) {
                         console.log(error);
                     }
@@ -89,7 +84,7 @@ class Game extends Component {
         y = Number(y);
         pass = Boolean(Number(pass));
         
-        const {goban, captured, error} = this.updateGoban(
+        const {goban, captured, error} = updateGoban(
             this.state.gobanHistory[this.state.move],
             this.state.move,
             x, y, pass
@@ -104,9 +99,6 @@ class Game extends Component {
             console.log('Ko rule violation detected!');
             return;
         }
-
-        console.log(this.state.gobanHistory);
-        console.log(goban);
 
         // update goban
         this.setState(state => {
@@ -127,51 +119,6 @@ class Game extends Component {
         });
     }
 
-    updateGoban = (sourceGoban, move, x, y, pass) => {
-        const gobanSize = sourceGoban.length;
-
-        // deep copy of current goban state
-        const goban = sourceGoban.map(gobanRow => gobanRow.slice());
-
-        // pass
-        if (pass) {
-            return {goban: goban, captured: 0};
-        }
-
-        // the place is taken
-        if (goban[x][y] !== undefined) {
-            return {goban: undefined, captured: undefined, error: 'The place is taken'};
-        }
-
-        goban[x][y] = move;
-
-        let captured = 0;
-
-        const updatedGroup = findGroup(goban, xy2n(x, y, gobanSize));
-
-        for (let i = 0; i < gobanSize; i++) {
-            for (let j = 0; j < gobanSize; j++) {
-                const n = xy2n(i, j, gobanSize);
-                if (goban[i][j] === undefined ||
-                    updatedGroup.includes(n)) {
-                    continue;
-                }
-                const hasLiberties = findLiberties(goban, n).size > 0;
-                if (!hasLiberties) {
-                    const capturedCount = captureGroup(goban, n);
-                    captured += capturedCount;
-                }
-            }
-        }
-
-        const isSuicideMove = findLiberties(goban, xy2n(x, y, gobanSize)).size === 0;
-        if (isSuicideMove) {
-            return { goban: false, captured: 0, error: 'Suicide detected!'};
-        }
-
-        return { goban: goban, captured: captured, error: undefined };
-    };
-
     doMove = (x, y, pass = false) => {
         const move = this.state.move;
         if (move % 2 === Number(this.state.isBlack)) {
@@ -179,7 +126,7 @@ class Game extends Component {
             return;
         }
 
-        const {goban, error} = this.updateGoban(
+        const {goban, error} = updateGoban(
             this.state.gobanHistory[move],
             move,
             x, y, pass
@@ -211,6 +158,7 @@ class Game extends Component {
                     <p>В плену у черных: {this.state.capturedBlack}</p>
                     <p>В плену у белых: {this.state.capturedWhite}</p>
                     <Goban
+                        showHover={Number(!this.state.isBlack) === this.state.move % 2}
                         size={this.state.gobanSize}
                         stones={this.state.gobanHistory[this.state.move]}
                         move={this.state.move}

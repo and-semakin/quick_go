@@ -109,3 +109,48 @@ export const isGobanEqual = (goban1, goban2) => {
         return goban1row.length === goban2row.length && goban1row.every((value, j) => value === goban2row[j]);
     })
 }
+
+export const updateGoban = (sourceGoban, move, x, y, pass) => {
+    const gobanSize = sourceGoban.length;
+
+    // deep copy of current goban state
+    const goban = sourceGoban.map(gobanRow => gobanRow.slice());
+
+    // pass
+    if (pass) {
+        return {goban: goban, captured: 0};
+    }
+
+    // the place is taken
+    if (goban[x][y] !== undefined) {
+        return {goban: undefined, captured: undefined, error: 'The place is taken'};
+    }
+
+    goban[x][y] = move;
+
+    let captured = 0;
+
+    const updatedGroup = findGroup(goban, xy2n(x, y, gobanSize));
+
+    for (let i = 0; i < gobanSize; i++) {
+        for (let j = 0; j < gobanSize; j++) {
+            const n = xy2n(i, j, gobanSize);
+            if (goban[i][j] === undefined ||
+                updatedGroup.includes(n)) {
+                continue;
+            }
+            const hasLiberties = findLiberties(goban, n).size > 0;
+            if (!hasLiberties) {
+                const capturedCount = captureGroup(goban, n);
+                captured += capturedCount;
+            }
+        }
+    }
+
+    const isSuicideMove = findLiberties(goban, xy2n(x, y, gobanSize)).size === 0;
+    if (isSuicideMove) {
+        return { goban: false, captured: 0, error: 'Suicide detected!'};
+    }
+
+    return { goban: goban, captured: captured, error: undefined };
+};

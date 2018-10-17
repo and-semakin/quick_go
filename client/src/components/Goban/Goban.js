@@ -27,6 +27,7 @@ class Goban extends Component {
 
                 rowPoints.push(
                     <GobanPoint
+                        showHover={this.props.showHover}
                         onClick={() => this.props.onMove(x, y)}
                         key={String(x) + '_' + String(y)}
                         size={this.props.size}
