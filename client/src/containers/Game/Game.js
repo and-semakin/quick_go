@@ -28,6 +28,7 @@ class Game extends Component {
         recentMove: [null, null],
         errorMessage: 'Some error!',
         errorOpened: false,
+        playStoneCluck: false,
     }
 
     componentDidMount() {
@@ -131,6 +132,7 @@ class Game extends Component {
                 capturedBlack: capturedBlack,
                 capturedWhite: capturedWhite,
                 recentMove: pass ? [null, null] : [x, y],
+                playStoneCluck: !pass,
             };
         });
     }
@@ -195,6 +197,7 @@ class Game extends Component {
                         stones={this.state.gobanHistory[this.state.move]}
                         move={this.state.move}
                         onMove={this.doMove}
+                        playStoneCluck={this.state.playStoneCluck}
                     />
                     <div>
                         <Button

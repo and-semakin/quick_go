@@ -1,18 +1,26 @@
 import React, { Component } from 'react';
+import Sound from 'react-sound';
 
 import GobanRow from './GobanRow/GobanRow';
 import GobanPoint from './GobanPoint/GobanPoint';
 
 import './Goban.css';
 
+import stone_sound1 from './sounds/stone1.ogg';
+import stone_sound2 from './sounds/stone2.ogg';
+import stone_sound3 from './sounds/stone3.ogg';
+import stone_sound4 from './sounds/stone4.ogg';
+import stone_sound5 from './sounds/stone5.ogg';
+
+const stone_sounds = [
+    stone_sound1,
+    stone_sound2,
+    stone_sound3,
+    stone_sound4,
+    stone_sound5
+];
+
 class Goban extends Component {
-    state = {};
-
-    // static getDerivedStateFromProps(props, state) {
-    //     console.log('[Goban Update]', props);
-    //     return state;
-    // }
-
     drawGoban = () => {
         const gobanRows = [];
 
@@ -48,10 +56,22 @@ class Goban extends Component {
 
     render() {
         const goban = this.drawGoban();
+        let sound = null;
+
+        if (this.props.playStoneCluck) {
+            sound = (
+                <Sound
+                    url={stone_sounds[Math.floor(Math.random() * stone_sounds.length)]}
+                    playStatus={Sound.status.PLAYING}
+                    volume={15}
+                />
+            );
+        }
 
         return (
             <div className="goban">
                 {goban}
+                {sound}
             </div>
         );
     }
