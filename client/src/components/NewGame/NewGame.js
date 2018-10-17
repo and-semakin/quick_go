@@ -18,9 +18,7 @@ function fallbackCopyTextToClipboard(text) {
     textArea.select();
 
     try {
-        const successful = document.execCommand('copy');
-        const msg = successful ? 'successful' : 'unsuccessful';
-        console.log('Fallback: Copying text command was ' + msg);
+        document.execCommand('copy');
     } catch (err) {
         console.error('Fallback: Oops, unable to copy', err);
     }
@@ -33,11 +31,7 @@ function copyTextToClipboard(text) {
         fallbackCopyTextToClipboard(text);
         return;
     }
-    navigator.clipboard.writeText(text).then(function () {
-        console.log('Async: Copying to clipboard was successful!');
-    }, function (err) {
-        console.error('Async: Could not copy text: ', err);
-    });
+    navigator.clipboard.writeText(text);
 }
 
 class NewGame extends Component {
@@ -49,14 +43,13 @@ class NewGame extends Component {
     }
 
     handleGobanSizeChange = event => {
-        console.log(event);
         this.setState({ gobanSize: event.target.value });
     };
 
     handleButtonClick = () => {
-        axios.post('/api/new', {
-            goban_size: this.state.gobanSize
-        }).then(response => {
+        const postData = new FormData();
+        postData.set('goban_size', this.state.gobanSize);
+        axios.post('/api/new', postData).then(response => {
             this.setState({
                 blackLink: response.data.link_black,
                 whiteLink: response.data.link_white,
