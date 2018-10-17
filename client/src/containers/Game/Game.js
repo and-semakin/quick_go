@@ -1,10 +1,19 @@
 import React, { Component } from 'react';
 import Button from '@material-ui/core/Button';
+import Slide from '@material-ui/core/Slide';
+import Snackbar from '@material-ui/core/Snackbar';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
 
 import Goban from '../../components/Goban/Goban';
 import axios from 'axios';
 
 import { isGobanEqual, updateGoban } from '../../go_helpers';
+
+function TransitionUp(props) {
+    return <Slide {...props} direction="up" />;
+}
+
 
 class Game extends Component {
     state = {
@@ -17,6 +26,8 @@ class Game extends Component {
         gobanSize: 0,
         gobanHistory: [[]],
         recentMove: [null, null],
+        errorMessage: 'Some error!',
+        errorOpened: false,
     }
 
     componentDidMount() {
@@ -43,7 +54,7 @@ class Game extends Component {
                         pass,
                         x, y
                     } = move;
-                    const {goban: newGoban, captured, error} = updateGoban(goban, order, x, y, pass);
+                    const { goban: newGoban, captured, error } = updateGoban(goban, order, x, y, pass);
                     if (error) {
                         console.log(error);
                     }
@@ -87,8 +98,8 @@ class Game extends Component {
         x = Number(x);
         y = Number(y);
         pass = Boolean(Number(pass));
-        
-        const {goban, captured, error} = updateGoban(
+
+        const { goban, captured, error } = updateGoban(
             this.state.gobanHistory[this.state.move],
             this.state.move,
             x, y, pass
@@ -124,6 +135,12 @@ class Game extends Component {
         });
     }
 
+    snackbarCloseHandler = () => {
+        this.setState({
+            errorOpened: false,
+        });
+    }
+
     doMove = (x, y, pass = false) => {
         const move = this.state.move;
         if (move % 2 === Number(this.state.isBlack)) {
@@ -131,12 +148,16 @@ class Game extends Component {
             return;
         }
 
-        const {goban, error} = updateGoban(
+        const { goban, error } = updateGoban(
             this.state.gobanHistory[move],
             move,
             x, y, pass
         );
         if (error) {
+            this.setState({
+                errorOpened: true,
+                errorMessage: error,
+            });
             console.log(error);
             return;
         }
@@ -184,6 +205,30 @@ class Game extends Component {
         return (
             <div>
                 {goban}
+                <Snackbar
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }}
+                    ContentProps={{
+                        'aria-describedby': 'message-id',
+                    }}
+                    message={<span id="message-id">{this.state.errorMessage}</span>}
+                    open={this.state.errorOpened}
+                    autoHideDuration={2500}
+                    onClose={this.snackbarCloseHandler}
+                    TransitionComponent={TransitionUp}
+                    action={
+                        <IconButton
+                            key="close"
+                            aria-label="Close"
+                            color="inherit"
+                            onClick={this.snackbarCloseHandler}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                    }
+                />
             </div>
         );
     }
