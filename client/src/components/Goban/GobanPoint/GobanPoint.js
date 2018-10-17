@@ -33,7 +33,7 @@ const GobanPoint = (props) => {
     }
 
     if (props.stone) {
-        stone = <GobanStone color={props.stone} />
+        stone = <GobanStone color={props.stone} recent={props.recent} />
     }
 
     return (

@@ -27,6 +27,7 @@ class Goban extends Component {
 
                 rowPoints.push(
                     <GobanPoint
+                        recent={(this.props.recentMove[0] === x && this.props.recentMove[1] === y)}
                         showHover={this.props.showHover}
                         onClick={() => this.props.onMove(x, y)}
                         key={String(x) + '_' + String(y)}

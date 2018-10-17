@@ -16,6 +16,7 @@ class Game extends Component {
         capturedBlack: 0,
         gobanSize: 0,
         gobanHistory: [[]],
+        recentMove: [null, null],
     }
 
     componentDidMount() {
@@ -34,6 +35,7 @@ class Game extends Component {
                 let goban = gobanHistory[0];
                 let capturedBlack = 0;
                 let capturedWhite = 0;
+                let recentMove = [null, null];
 
                 moves.forEach((move, index) => {
                     const {
@@ -52,6 +54,7 @@ class Game extends Component {
                     }
                     gobanHistory.push(newGoban);
                     goban = newGoban;
+                    recentMove = pass ? [null, null] : [x, y];
                 });
 
                 this.setState({
@@ -62,6 +65,7 @@ class Game extends Component {
                     capturedWhite,
                     move,
                     gobanHistory,
+                    recentMove,
                 })
             })
             .catch(error => {
@@ -115,6 +119,7 @@ class Game extends Component {
                 gobanHistory: state.gobanHistory.concat([goban]),
                 capturedBlack: capturedBlack,
                 capturedWhite: capturedWhite,
+                recentMove: pass ? [null, null] : [x, y],
             };
         });
     }
@@ -159,6 +164,7 @@ class Game extends Component {
                     <p>В плену у белых: {this.state.capturedWhite}</p>
                     <Goban
                         showHover={Number(!this.state.isBlack) === this.state.move % 2}
+                        recentMove={this.state.recentMove}
                         size={this.state.gobanSize}
                         stones={this.state.gobanHistory[this.state.move]}
                         move={this.state.move}
