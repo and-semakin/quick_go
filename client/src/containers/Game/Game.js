@@ -164,7 +164,12 @@ class Game extends Component {
 
         // ko rule
         if (!pass && move > 0 && isGobanEqual(goban, this.state.gobanHistory[move - 1])) {
-            console.log('Ko rule violation detected!');
+            const ko_error = 'Ko rule violation detected!';
+            this.setState({
+                errorOpened: true,
+                errorMessage: ko_error,
+            });
+            console.log(ko_error);
             return;
         }
 
