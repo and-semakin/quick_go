@@ -20,6 +20,7 @@ const GobanPoint = (props) => {
     }
 
     let stone = null;
+    let star = null;
 
     if (props.showHover) {
         stone = (
@@ -36,9 +37,14 @@ const GobanPoint = (props) => {
         stone = <GobanStone color={props.stone} recent={props.recent} />
     }
 
+    if (props.star) {
+        star = <div className="star" />;
+    }
+
     return (
         <div className={classes.join(' ')} onClick={props.onClick}>
             {stone}
+            {star}
         </div>
     );
 };

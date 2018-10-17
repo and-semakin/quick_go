@@ -44,6 +44,7 @@ class Goban extends Component {
                         column={y}
                         stone={stone}
                         move={this.props.move}
+                        star={this.props.stars.some(s => s[0] === x && s[1] === y)}
                     />
                 );
             }

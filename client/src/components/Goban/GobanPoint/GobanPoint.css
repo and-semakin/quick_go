@@ -74,3 +74,13 @@
     /* left: -24px; */
     z-index: -1;
 }
+
+.star {
+    width: 10px;
+    height: 10px;
+    background-color: black;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    border-radius: 50%;
+}
