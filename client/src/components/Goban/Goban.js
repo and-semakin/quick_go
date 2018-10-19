@@ -121,8 +121,6 @@ class Goban extends Component {
         const goban = this.drawGoban();
         let sound = null;
 
-        console.log('init', this.state.initialRender);
-
         if (!this.state.initialRender) {
             if (this.props.recentMove[0] === null) {
                 // pass sound

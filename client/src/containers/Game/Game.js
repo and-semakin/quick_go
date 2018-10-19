@@ -10,6 +10,8 @@ import axios from 'axios';
 
 import { isGobanEqual, updateGoban } from '../../go_helpers';
 
+import './Game.css';
+
 function TransitionUp(props) {
     return <Slide {...props} direction="up" />;
 }
@@ -28,6 +30,7 @@ class Game extends Component {
         recentMove: [null, null],
         errorMessage: 'Some error!',
         errorOpened: false,
+        countPassesInARow: 0,
     }
 
     componentDidMount() {
@@ -47,6 +50,7 @@ class Game extends Component {
                 let capturedBlack = 0;
                 let capturedWhite = 0;
                 let recentMove = [null, null];
+                let countPassesInARow = 0;
 
                 moves.forEach((move, index) => {
                     const {
@@ -66,6 +70,11 @@ class Game extends Component {
                     gobanHistory.push(newGoban);
                     goban = newGoban;
                     recentMove = pass ? [null, null] : [x, y];
+                    if (pass) {
+                        countPassesInARow++;
+                    } else {
+                        countPassesInARow = 0;
+                    }
                 });
 
                 this.setState({
@@ -77,6 +86,7 @@ class Game extends Component {
                     move,
                     gobanHistory,
                     recentMove,
+                    countPassesInARow
                 })
             })
             .catch(error => {
@@ -120,18 +130,27 @@ class Game extends Component {
         this.setState(state => {
             let capturedBlack = state.capturedBlack;
             let capturedWhite = state.capturedWhite;
+            let countPassesInARow = state.countPassesInARow;
+
             if (order % 2 === 0) {
                 capturedBlack = capturedBlack + captured;
             } else {
                 capturedWhite = capturedWhite + captured;
             }
 
+            if (pass) {
+                countPassesInARow++;
+            } else {
+                countPassesInARow = 0;
+            }
+
             return {
                 move: order + 1,
                 gobanHistory: state.gobanHistory.concat([goban]),
-                capturedBlack: capturedBlack,
-                capturedWhite: capturedWhite,
+                capturedBlack,
+                capturedWhite,
                 recentMove: pass ? [null, null] : [x, y],
+                countPassesInARow,
             };
         });
     }
@@ -180,15 +199,41 @@ class Game extends Component {
     }
 
     render() {
-        const next_move = (this.state.move % 2 === 0) ? 'черные' : 'белые'
-        const next_move_you = (this.state.move % 2 !== Number(this.state.isBlack)) ? 'ты' : 'не ты'
+        const next_move = (this.state.move % 2 === 0) ? 'black' : 'white'
+        const next_move_you = (this.state.move % 2 !== Number(this.state.isBlack)) ? 'you' : 'your opponent'
         let goban = null;
+        let actionButton = null;
+
+        if (!this.state.finished) {
+            if (this.state.countPassesInARow < 2) {
+                actionButton = (
+                    <div>
+                        <Button
+                            disabled={this.state.move % 2 === Number(this.state.isBlack)}
+                            color="primary"
+                            variant="contained"
+                            onClick={() => this.doMove(null, null, true)}
+                        >Pass</Button>
+                    </div>
+                );
+            } else {
+                actionButton = (
+                    <div>
+                        <Button
+                            color="primary"
+                            variant="contained"
+                        >Finish the game</Button>
+                    </div>
+                );
+            }
+        }
+
         if (this.state.gobanSize > 0) {
             goban = (
                 <>
-                    <p>Ход №{this.state.move}, ходят {next_move} ({next_move_you})</p>
-                    <p>В плену у черных: {this.state.capturedBlack}</p>
-                    <p>В плену у белых: {this.state.capturedWhite}</p>
+                    <p>Move #{this.state.move + 1}, <b>{next_move}</b> goes ({next_move_you})</p>
+                    <p>Black captured: {this.state.capturedBlack}</p>
+                    <p>White captured: {this.state.capturedWhite}</p>
                     <Goban
                         showHover={Number(!this.state.isBlack) === this.state.move % 2}
                         recentMove={this.state.recentMove}
@@ -197,20 +242,16 @@ class Game extends Component {
                         move={this.state.move}
                         onMove={this.doMove}
                     />
-                    <div>
-                        <Button
-                            color="primary"
-                            variant="contained"
-                            onClick={() => this.doMove(null, null, true)}
-                        >Пас</Button>
-                    </div>
+                    {actionButton}
                 </>
             );
         }
 
         return (
-            <div>
-                {goban}
+            <>
+                <div className="Game">
+                    {goban}
+                </div>
                 <Snackbar
                     anchorOrigin={{
                         vertical: 'bottom',
@@ -235,7 +276,7 @@ class Game extends Component {
                         </IconButton>
                     }
                 />
-            </div>
+            </>
         );
     }
 }
