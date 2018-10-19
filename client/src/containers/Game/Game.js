@@ -126,7 +126,8 @@ class Game extends Component {
                 console.log(error);
             })
 
-        this.socket = new WebSocket(`ws://${document.location.host}/api/ws/${link}`)
+        const ws_scheme = (document.location.protocol === 'https:') ? 'wss' : 'ws';
+        this.socket = new WebSocket(`${ws_scheme}://${document.location.host}/api/ws/${link}`);
         this.socket.addEventListener('open', () => {
             console.log('WebSocket connected.');
         });
