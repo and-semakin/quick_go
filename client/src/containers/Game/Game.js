@@ -5,7 +5,7 @@ import Snackbar from '@material-ui/core/Snackbar';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 
-import Goban from '../../components/Goban/Goban';
+import Goban from '../Goban/Goban';
 import axios from 'axios';
 
 import { isGobanEqual, updateGoban } from '../../go_helpers';
@@ -222,7 +222,7 @@ class Game extends Component {
                         <Button
                             color="primary"
                             variant="contained"
-                        >Finish the game</Button>
+                        >Finish Game</Button>
                     </div>
                 );
             }

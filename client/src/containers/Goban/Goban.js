@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import Sound from 'react-sound';
 
-import GobanRow from './GobanRow/GobanRow';
-import GobanPoint from './GobanPoint/GobanPoint';
+import GobanRow from '../../components/GobanRow/GobanRow';
+import GobanPoint from '../../components/GobanPoint/GobanPoint';
 
 import './Goban.css';
 
