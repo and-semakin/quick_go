@@ -15,39 +15,6 @@ function TransitionUp(props) {
 }
 
 
-const stars_9 = [
-    [2, 2],
-    [2, 6],
-    [4, 4],
-    [6, 2],
-    [6, 6],
-];
-
-const stars_13 = [
-    [3, 3],
-    [3, 6],
-    [3, 9],
-    [6, 3],
-    [6, 6],
-    [6, 9],
-    [9, 3],
-    [9, 6],
-    [9, 9],
-];
-
-const stars_19 = [
-    [3, 3],
-    [3, 9],
-    [3, 15],
-    [9, 3],
-    [9, 9],
-    [9, 15],
-    [15, 3],
-    [15, 9],
-    [15, 15],
-];
-
-
 class Game extends Component {
     state = {
         isBlack: undefined,
@@ -58,7 +25,6 @@ class Game extends Component {
         capturedBlack: 0,
         gobanSize: 0,
         gobanHistory: [[]],
-        stars: [],
         recentMove: [null, null],
         errorMessage: 'Some error!',
         errorOpened: false,
@@ -103,13 +69,6 @@ class Game extends Component {
                     recentMove = pass ? [null, null] : [x, y];
                 });
 
-                let stars = [];
-                // set stars
-
-                if (gobanSize === 9) stars = stars_9;
-                if (gobanSize === 13) stars = stars_13;
-                if (gobanSize === 19) stars = stars_19;
-
                 this.setState({
                     finished,
                     gobanSize,
@@ -119,7 +78,6 @@ class Game extends Component {
                     move,
                     gobanHistory,
                     recentMove,
-                    stars,
                 })
             })
             .catch(error => {
@@ -238,7 +196,6 @@ class Game extends Component {
                         recentMove={this.state.recentMove}
                         size={this.state.gobanSize}
                         stones={this.state.gobanHistory[this.state.move]}
-                        stars={this.state.stars}
                         move={this.state.move}
                         onMove={this.doMove}
                         playStoneCluck={this.state.playStoneCluck}

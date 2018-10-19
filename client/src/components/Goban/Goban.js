@@ -11,6 +11,7 @@ import stone_sound2 from './sounds/stone2.ogg';
 import stone_sound3 from './sounds/stone3.ogg';
 import stone_sound4 from './sounds/stone4.ogg';
 import stone_sound5 from './sounds/stone5.ogg';
+import pass_sound from './sounds/pass.ogg';
 
 const stone_sounds = [
     stone_sound1,
@@ -20,14 +21,67 @@ const stone_sounds = [
     stone_sound5
 ];
 
+const stars_9 = [
+    [2, 2],
+    [2, 6],
+    [4, 4],
+    [6, 2],
+    [6, 6],
+];
+
+const stars_13 = [
+    [3, 3],
+    [3, 6],
+    [3, 9],
+    [6, 3],
+    [6, 6],
+    [6, 9],
+    [9, 3],
+    [9, 6],
+    [9, 9],
+];
+
+const stars_19 = [
+    [3, 3],
+    [3, 9],
+    [3, 15],
+    [9, 3],
+    [9, 9],
+    [9, 15],
+    [15, 3],
+    [15, 9],
+    [15, 15],
+];
+
 class Goban extends Component {
+    state = {
+        size: null,
+        stars: [],
+    }
+
+    static getDerivedStateFromProps(props, state) {
+        if (props.size === state.size) {
+            return null;
+        }
+
+        let stars = [];
+        if (props.size === 9) stars = stars_9;
+        if (props.size === 13) stars = stars_13;
+        if (props.size === 19) stars = stars_19;
+
+        return {
+            size: props.size,
+            stars: stars,
+        };
+    }
+
     drawGoban = () => {
         const gobanRows = [];
 
-        for (let x = 0; x < this.props.size; x++) {
+        for (let x = 0; x < this.state.size; x++) {
             let rowPoints = [];
 
-            for (let y = 0; y < this.props.size; y++) {
+            for (let y = 0; y < this.state.size; y++) {
                 let stone = null;
                 if (this.props.stones[x][y] !== undefined) {
                     stone = (this.props.stones[x][y] % 2 === 0) ? 'black' : 'white';
@@ -39,12 +93,12 @@ class Goban extends Component {
                         showHover={this.props.showHover}
                         onClick={() => this.props.onMove(x, y)}
                         key={String(x) + '_' + String(y)}
-                        size={this.props.size}
+                        size={this.state.size}
                         row={x}
                         column={y}
                         stone={stone}
                         move={this.props.move}
-                        star={this.props.stars.some(s => s[0] === x && s[1] === y)}
+                        star={this.state.stars.some(s => s[0] === x && s[1] === y)}
                     />
                 );
             }
