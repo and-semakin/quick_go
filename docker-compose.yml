@@ -1,9 +1,15 @@
 version: '2.1'
 services:
-  frontend_nginx:
-    build: ./client
+  https:
+    build: ./https
+    restart: always
+    environment:
+      CERTBOT_EMAIL: "and-semakin@ya.ru"
     ports:
       - "80:80"
+      - "443:443"
+  frontend_nginx:
+    build: ./client
   backend:
     build: ./server
     depends_on:
