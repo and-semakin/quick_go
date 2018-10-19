@@ -55,31 +55,40 @@ const stars_19 = [
 
 class Goban extends Component {
     state = {
-        initialRender: true,
+        move: null,
         size: null,
         stars: [],
-    }
-
-    componentDidUpdate() {
-        if (!this.state.initialRender) return;
-        this.setState({
-            initialRender: false,
-        });
+        playSounds: false,
+        initialRender: true,
     }
 
     static getDerivedStateFromProps(props, state) {
-        if (props.size === state.size) {
-            return null;
+        let {
+            move,
+            playSounds,
+            size,
+            stars,
+        } = state;
+        playSounds = false;
+
+        if (props.move !== move) {
+            move = props.move;
+            playSounds = !state.initialRender;
         }
 
-        let stars = [];
-        if (props.size === 9) stars = stars_9;
-        if (props.size === 13) stars = stars_13;
-        if (props.size === 19) stars = stars_19;
+        if (props.size !== size) {
+            size = props.size;
+            if (size === 9) stars = stars_9;
+            if (size === 13) stars = stars_13;
+            if (size === 19) stars = stars_19;
+        }
 
         return {
-            size: props.size,
-            stars: stars,
+            move,
+            size,
+            stars,
+            playSounds,
+            initialRender: false,
         };
     }
 
@@ -121,7 +130,7 @@ class Goban extends Component {
         const goban = this.drawGoban();
         let sound = null;
 
-        if (!this.state.initialRender) {
+        if (this.state.playSounds) {
             if (this.props.recentMove[0] === null) {
                 // pass sound
                 sound = (

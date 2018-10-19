@@ -260,7 +260,7 @@ class Game extends Component {
                     ContentProps={{
                         'aria-describedby': 'message-id',
                     }}
-                    message={<span id="message-id">{this.state.errorMessage}</span>}
+                    message={<span id="message-id">You can't go here: {this.state.errorMessage}</span>}
                     open={this.state.errorOpened}
                     autoHideDuration={2500}
                     onClose={this.snackbarCloseHandler}

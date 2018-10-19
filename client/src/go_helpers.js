@@ -123,7 +123,7 @@ export const updateGoban = (sourceGoban, move, x, y, pass) => {
 
     // the place is taken
     if (goban[x][y] !== undefined) {
-        return {goban: undefined, captured: undefined, error: 'The place is taken'};
+        return {goban: undefined, captured: undefined, error: 'the point is taken'};
     }
 
     goban[x][y] = move;
@@ -149,7 +149,7 @@ export const updateGoban = (sourceGoban, move, x, y, pass) => {
 
     const isSuicideMove = findLiberties(goban, xy2n(x, y, gobanSize)).size === 0;
     if (isSuicideMove) {
-        return { goban: false, captured: 0, error: 'Suicide detected!'};
+        return { goban: false, captured: 0, error: 'suicide move is not allowed'};
     }
 
     return { goban: goban, captured: captured, error: undefined };
