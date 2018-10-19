@@ -55,8 +55,16 @@ const stars_19 = [
 
 class Goban extends Component {
     state = {
+        initialRender: true,
         size: null,
         stars: [],
+    }
+
+    componentDidUpdate() {
+        if (!this.state.initialRender) return;
+        this.setState({
+            initialRender: false,
+        });
     }
 
     static getDerivedStateFromProps(props, state) {
@@ -113,14 +121,28 @@ class Goban extends Component {
         const goban = this.drawGoban();
         let sound = null;
 
-        if (this.props.playStoneCluck) {
-            sound = (
-                <Sound
-                    url={stone_sounds[Math.floor(Math.random() * stone_sounds.length)]}
-                    playStatus={Sound.status.PLAYING}
-                    volume={15}
-                />
-            );
+        console.log('init', this.state.initialRender);
+
+        if (!this.state.initialRender) {
+            if (this.props.recentMove[0] === null) {
+                // pass sound
+                sound = (
+                    <Sound
+                        url={pass_sound}
+                        playStatus={Sound.status.PLAYING}
+                        volume={15}
+                    />
+                );
+            } else {
+                // random stone sound
+                sound = (
+                    <Sound
+                        url={stone_sounds[Math.floor(Math.random() * stone_sounds.length)]}
+                        playStatus={Sound.status.PLAYING}
+                        volume={15}
+                    />
+                );
+            }
         }
 
         return (
