@@ -1,3 +1,4 @@
+from typing import Tuple, Any
 from datetime import datetime
 import secrets
 
@@ -6,8 +7,9 @@ from sqlalchemy import (
     MetaData, Table, Column, ForeignKey,
     Integer, String, DateTime, Boolean, or_,
 )
+from sqlalchemy.engine import Connection
 
-__all__ = ['game', 'move']
+__all__ = ['game', 'move', 'chat_message']
 
 convention = {
     "ix": "ix_%(column_0_label)s",
@@ -30,6 +32,10 @@ game = Table(
     Column('finished', Boolean, server_default="f", nullable=False),
     Column('start_date', DateTime, nullable=False),
     Column('finish_date', DateTime, nullable=True),
+    Column('result', String(6), nullable=True),
+    Column('move_submit_enabled', Boolean, server_default="t", nullable=False),
+    Column('undo_requests_enabled', Boolean, server_default="f", nullable=False),
+    Column('chat_enabled', Boolean, server_default="f", nullable=False),
 )
 
 move = Table(
@@ -46,6 +52,20 @@ move = Table(
     Column('pass', Boolean, server_default="t", nullable=False),
     Column('x', Integer, server_default="0", nullable=False),
     Column('y', Integer, server_default="0", nullable=False),
+)
+
+chat_message = Table(
+    'chat_message', meta,
+
+    Column('id', Integer, primary_key=True),
+    Column(
+        'game_id',
+        Integer,
+        ForeignKey('game.id', ondelete='CASCADE')
+    ),
+    Column('time', DateTime, nullable=False),
+    Column('is_black', Boolean, server_default="t", nullable=False),
+    Column('text', String(256), nullable=False),
 )
 
 
@@ -72,7 +92,11 @@ async def close_pg(app):
     await app['db'].wait_closed()
 
 
-async def get_game(conn, link):
+async def get_game(
+    conn: Connection,
+    link: str
+) -> Tuple[Any, Any, Any]:
+    """Get game info, moves and chat messages."""
     result = await conn.execute(
         game.select()
         .where(or_(
@@ -84,16 +108,31 @@ async def get_game(conn, link):
     if not found_game:
         msg = "Game with link: {} does not exists"
         raise RecordNotFound(msg.format(link))
+
     result = await conn.execute(
         move.select()
         .where(move.c.game_id == found_game.id)
         .order_by(move.c.order)
     )
     moves = await result.fetchall()
-    return found_game, moves
+
+    result = await conn.execute(
+        chat_message.select()
+        .where(chat_message.c.game_id == found_game.id)
+        .order_by(chat_message.c.time)
+    )
+    chat_messages = await result.fetchall()
+
+    return found_game, moves, chat_messages
 
 
-async def new_game(conn, goban_size):
+async def new_game(
+    conn,
+    goban_size,
+    move_submit_enabled=True,
+    undo_requests_enabled=False,
+    chat_enabled=False,
+):
     link_black = secrets.token_hex(16)
     link_white = secrets.token_hex(16)
     result = await conn.execute(
@@ -102,7 +141,11 @@ async def new_game(conn, goban_size):
             'link_white': link_white,
             'goban_size': goban_size,
             'start_date': datetime.now(),
-            'finish_date': None
+            'finish_date': None,
+            'result': None,
+            'move_submit_enabled': move_submit_enabled,
+            'undo_requests_enabled': undo_requests_enabled,
+            'chat_enabled': chat_enabled,
         }).returning(game.c.link_black, game.c.link_white)
     )
     new_game = await result.fetchone()
