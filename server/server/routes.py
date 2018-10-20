@@ -1,4 +1,4 @@
-from views import new_game, get_game, websocket
+from server.views import new_game, get_game, websocket
 
 
 def setup_routes(app):

@@ -1,8 +1,8 @@
 import sys
 from sqlalchemy import create_engine, MetaData
 
-from settings import get_config
-from db import game, move
+from server.settings import get_config
+from server.db import game, move
 
 DSN = "postgresql://{user}:{password}@{host}:{port}/{database}"
 

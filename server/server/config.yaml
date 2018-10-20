@@ -1,7 +1,7 @@
 postgres:
   database: go
-  user: go_user
-  password: go_password
+  user: go
+  password: qwerty
   host: postgres
   port: 5432
   minsize: 3

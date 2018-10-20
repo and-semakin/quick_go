@@ -8,6 +8,6 @@ FROM python:3.6.6-alpine3.8
 WORKDIR /app
 COPY --from=pipenv /app/requirements.txt .
 RUN apk update && apk add postgresql-dev gcc python3-dev musl-dev
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-CMD python main.py
+CMD python -m server

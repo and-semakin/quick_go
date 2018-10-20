@@ -7,13 +7,13 @@ import sys
 
 from aiohttp import web, WSMsgType
 
-import db
+import server.db
 
 loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
 async def list_games(request):
     async with request.app['db'].acquire() as conn:
-        cursor = await conn.execute(db.game.select())
+        cursor = await conn.execute(server.db.game.select())
         records = await cursor.fetchall()
         games = [dict(g) for g in records]
         return web.json_response({'games': games}, dumps=functools.partial(json.dumps, default=str))
@@ -23,7 +23,7 @@ async def new_game(request):
     data = await request.post()
     goban_size = data.get('goban_size', 9)
     async with request.app['db'].acquire() as conn:
-        game = await db.new_game(conn, goban_size)
+        game = await server.db.new_game(conn, goban_size)
         return web.json_response({
             'link_black': game['link_black'],
             'link_white': game['link_white'],
@@ -34,11 +34,11 @@ async def get_game(request):
     async with request.app['db'].acquire() as conn:
         link = request.match_info['link']
         try:
-            game, moves = await db.get_game(
+            game, moves = await server.db.get_game(
                 conn,
                 link
             )
-        except db.RecordNotFound as e:
+        except server.db.RecordNotFound as e:
             raise web.HTTPNotFound(text=str(e))
         moves = list(map(lambda move: {
             'order': move['order'],
@@ -60,11 +60,11 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
 
     async with request.app['db'].acquire() as conn:
         try:
-            game, _ = await db.get_game(
+            game, _ = await server.db.get_game(
                 conn,
                 link
             )
-        except db.RecordNotFound as e:
+        except server.db.RecordNotFound as e:
             raise web.HTTPNotFound(text=str(e))
 
     ws: web.Response = web.WebSocketResponse(heartbeat=10, receive_timeout=20)
@@ -111,7 +111,7 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
 
                 # writing update to database
                 async with request.app['db'].acquire() as conn:
-                    move_no, x, y, _pass = await db.do_move(conn, game_id, x, y, _pass)
+                    move_no, x, y, _pass = await server.db.do_move(conn, game_id, x, y, _pass)
 
                 # notifying users online about update
                 for i, _ws in enumerate(request.app['ws'][game_id]):

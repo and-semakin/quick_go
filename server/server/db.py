@@ -9,7 +9,15 @@ from sqlalchemy import (
 
 __all__ = ['game', 'move']
 
-meta = MetaData()
+convention = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s"
+}
+
+meta = MetaData(naming_convention=convention)
 
 game = Table(
     'game', meta,
@@ -99,6 +107,7 @@ async def new_game(conn, goban_size):
     )
     new_game = await result.fetchone()
     return new_game
+
 
 async def do_move(conn, game_id, x=0, y=0, _pass=True):
     result = await conn.execute(

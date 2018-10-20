@@ -3,7 +3,7 @@ import pathlib
 
 from trafaret_config import commandline
 
-from utils import TRAFARET
+from server.utils import TRAFARET
 
 
 BASE_DIR = pathlib.Path(__file__).parent

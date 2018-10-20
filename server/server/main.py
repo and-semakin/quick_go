@@ -1,12 +1,11 @@
 import logging
-import sys
 import collections
 
 from aiohttp import web
 
-from db import close_pg, init_pg
-from routes import setup_routes
-from settings import get_config
+from server.db import close_pg, init_pg
+from server.routes import setup_routes
+from server.settings import get_config
 
 logging_format = '%(asctime)-15s - %(name)s - %(levelname)s - %(message)s'
 
@@ -36,7 +35,3 @@ def main(argv):
     web.run_app(app,
                 host=config['host'],
                 port=config['port'])
-
-
-if __name__ == '__main__':
-    main(sys.argv[1:])
