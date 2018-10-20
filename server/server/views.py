@@ -63,7 +63,7 @@ async def get_game(request):
             'finished': game['finished'],
             'result': game['result'],
             'start_date': game['start_date'].timestamp(),
-            'finish_date': game['finish_date'].timestamp(),
+            'finish_date': game['finish_date'].timestamp() if game['finish_date'] else None,
             'moves': moves,
             'chatMessages': messages,
             'moveSubmitEnabled': game['move_submit_enabled'],
