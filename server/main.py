@@ -8,6 +8,7 @@ from db import close_pg, init_pg
 from routes import setup_routes
 from settings import get_config
 
+logging_format = '%(asctime)-15s - %(name)s - %(levelname)s - %(message)s'
 
 def init_app(argv=None):
 
@@ -27,7 +28,7 @@ def init_app(argv=None):
 
 
 def main(argv):
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG, format=logging_format)
 
     app = init_app(argv)
 

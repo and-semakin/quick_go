@@ -98,61 +98,68 @@ class Game extends Component {
         this.socket.addEventListener('open', () => {
             console.log('WebSocket connected.');
         });
+        this.socket.addEventListener('close', () => {
+            console.log('WebSocket closed.');
+        });
 
-        this.socket.addEventListener('message', this.onWebSockerMessageHandler)
+        this.socket.addEventListener('message', this.onWebSockerMessageHandler);
     }
 
     onWebSockerMessageHandler = (event) => {
         console.log('<- ', event.data);
-        let [order, x, y, pass] = event.data.split(" ");
-        order = Number(order);
-        x = Number(x);
-        y = Number(y);
-        pass = Boolean(Number(pass));
 
-        const { goban, captured, error } = updateGoban(
-            this.state.gobanHistory[this.state.move],
-            this.state.move,
-            x, y, pass
-        );
-        if (error) {
-            console.log(error);
-            return;
+        const data = JSON.parse(event.data);
+
+        switch (data.type) {
+            case 'game_move':
+                const {move_no, x, y, pass} = data;
+                const { goban, captured, error } = updateGoban(
+                    this.state.gobanHistory[this.state.move],
+                    this.state.move,
+                    x, y, pass
+                );
+                if (error) {
+                    console.log(error);
+                    return;
+                }
+        
+                // ko rule
+                if (!pass && this.state.move > 0 && isGobanEqual(goban, this.state.gobanHistory[this.state.move - 1])) {
+                    console.log('Ko rule violation detected!');
+                    return;
+                }
+        
+                // update goban
+                this.setState(state => {
+                    let capturedBlack = state.capturedBlack;
+                    let capturedWhite = state.capturedWhite;
+                    let countPassesInARow = state.countPassesInARow;
+        
+                    if (move_no % 2 === 0) {
+                        capturedBlack = capturedBlack + captured;
+                    } else {
+                        capturedWhite = capturedWhite + captured;
+                    }
+        
+                    if (pass) {
+                        countPassesInARow++;
+                    } else {
+                        countPassesInARow = 0;
+                    }
+        
+                    return {
+                        move: move_no + 1,
+                        gobanHistory: state.gobanHistory.concat([goban]),
+                        capturedBlack,
+                        capturedWhite,
+                        recentMove: pass ? [null, null] : [x, y],
+                        countPassesInARow,
+                    };
+                });
+                break;
+            default:
+                console.log(`Unexpected message type: ${data.type}`);
         }
-
-        // ko rule
-        if (!pass && this.state.move > 0 && isGobanEqual(goban, this.state.gobanHistory[this.state.move - 1])) {
-            console.log('Ko rule violation detected!');
-            return;
-        }
-
-        // update goban
-        this.setState(state => {
-            let capturedBlack = state.capturedBlack;
-            let capturedWhite = state.capturedWhite;
-            let countPassesInARow = state.countPassesInARow;
-
-            if (order % 2 === 0) {
-                capturedBlack = capturedBlack + captured;
-            } else {
-                capturedWhite = capturedWhite + captured;
-            }
-
-            if (pass) {
-                countPassesInARow++;
-            } else {
-                countPassesInARow = 0;
-            }
-
-            return {
-                move: order + 1,
-                gobanHistory: state.gobanHistory.concat([goban]),
-                capturedBlack,
-                capturedWhite,
-                recentMove: pass ? [null, null] : [x, y],
-                countPassesInARow,
-            };
-        });
     }
 
     snackbarCloseHandler = () => {
@@ -193,7 +200,13 @@ class Game extends Component {
             return;
         }
 
-        const msg = `${Number(move)} ${Number(x)} ${Number(y)} ${Number(pass)}`;
+        const msg = JSON.stringify({
+            type: 'game_move',
+            move_no: move,
+            x,
+            y,
+            pass,
+        });
         console.log('->', msg);
         this.socket.send(msg);
     }
