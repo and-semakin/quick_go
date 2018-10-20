@@ -94,7 +94,9 @@ async def close_pg(app):
 
 async def get_game(
     conn: Connection,
-    link: str
+    link: str,
+    with_moves: bool = False,
+    with_messages: bool = False
 ) -> Tuple[Any, Any, Any]:
     """Get game info, moves and chat messages."""
     result = await conn.execute(
@@ -109,19 +111,24 @@ async def get_game(
         msg = "Game with link: {} does not exists"
         raise RecordNotFound(msg.format(link))
 
-    result = await conn.execute(
-        move.select()
-        .where(move.c.game_id == found_game.id)
-        .order_by(move.c.order)
-    )
-    moves = await result.fetchall()
+    moves = []
+    chat_messages = []
 
-    result = await conn.execute(
-        chat_message.select()
-        .where(chat_message.c.game_id == found_game.id)
-        .order_by(chat_message.c.time)
-    )
-    chat_messages = await result.fetchall()
+    if with_moves:
+        result = await conn.execute(
+            move.select()
+            .where(move.c.game_id == found_game.id)
+            .order_by(move.c.order)
+        )
+        moves = await result.fetchall()
+
+    if with_messages:
+        result = await conn.execute(
+            chat_message.select()
+            .where(chat_message.c.game_id == found_game.id)
+            .order_by(chat_message.c.time)
+        )
+        chat_messages = await result.fetchall()
 
     return found_game, moves, chat_messages
 
@@ -186,3 +193,15 @@ async def do_move(conn, game_id, x=0, y=0, _pass=True):
     )
 
     return current_move.order, current_move.x, current_move.y, current_move['pass']
+
+
+async def game_resign(conn, game_id, is_black):
+    values = {
+        'finished': True,
+        'finish_date': datetime.now(),
+        'result': 'W+R' if is_black else 'B+R',
+    }
+    await conn.execute(
+        game.update(None, values=values).where(game.c.id == game_id)
+    )
+    return values

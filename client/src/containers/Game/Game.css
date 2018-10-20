@@ -4,3 +4,12 @@
     padding: 15px;
     box-sizing: border-box;
 }
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+}
+
+.action-buttons > button {
+    margin: 5px;
+}

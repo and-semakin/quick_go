@@ -37,7 +37,9 @@ async def get_game(request):
         try:
             game, moves, messages = await server.db.get_game(
                 conn,
-                link
+                link,
+                with_moves=True,
+                with_messages=True
             )
         except server.db.RecordNotFound as e:
             raise web.HTTPNotFound(text=str(e))
@@ -59,12 +61,23 @@ async def get_game(request):
             'gobanSize': game['goban_size'],
             'move': game['move'],
             'finished': game['finished'],
+            'result': game['result'],
+            'start_date': game['start_date'].timestamp(),
+            'finish_date': game['finish_date'].timestamp(),
             'moves': moves,
             'chatMessages': messages,
             'moveSubmitEnabled': game['move_submit_enabled'],
             'undoRequestsEnabled': game['undo_requests_enabled'],
             'chatEnabled': game['chat_enabled'],
         })
+
+
+async def notify_all(msg, ws_list, logger=logging):
+    for i, ws in enumerate(ws_list):
+        logger.debug(
+            f'Sending to {i} client socket (closed: {ws.closed}, close_code: {ws.close_code})...')
+        await ws.send_json(msg)
+    logger.debug(f'Notifying all done.')
 
 
 async def websocket(request: web.Request) -> web.WebSocketResponse:
@@ -83,6 +96,7 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
     await ws.prepare(request)
 
     game_id: int = game['id']
+    is_black: bool = (link == game['link_black'])
 
     # add current WS to list of this game
     request.app['ws'][game_id].append(ws)
@@ -128,19 +142,32 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                     move_no, x, y, _pass = await server.db.do_move(conn, game_id, x, y, _pass)
 
                 # notifying users online about update
-                for i, _ws in enumerate(request.app['ws'][game_id]):
-                    ws_logger.debug(
-                        f'Sending to {i} client socket (closed: {_ws.closed}, close_code: {_ws.close_code})...')
-                    await _ws.send_json({
+                await notify_all(
+                    {
                         'type': 'game_move',
                         'move_no': move_no,
                         'x': x,
                         'y': y,
                         'pass': _pass,
-                    })
-                ws_logger.debug(f'Sending update done.')
+                    },
+                    request.app['ws'][game_id],
+                    logger=ws_logger
+                )
             elif msg_type == 'game_resign':
-                pass
+                # writing update to database
+                async with request.app['db'].acquire() as conn:
+                    resign_values = await server.db.game_resign(conn, game_id, is_black)
+
+                # notifying users online about update
+                await notify_all(
+                    {
+                        'type': 'game_resign',
+                        **resign_values,
+                        'finish_date': resign_values['finish_date'].timestamp(),
+                    },
+                    request.app['ws'][game_id],
+                    logger=ws_logger
+                )
             elif msg_type == 'game_finish':
                 pass
             elif msg_type == 'chat_message':
