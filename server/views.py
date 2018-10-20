@@ -1,3 +1,4 @@
+from typing import Dict, Any
 import logging
 import json
 import functools
@@ -8,8 +9,7 @@ from aiohttp import web, WSMsgType
 
 import db
 
-loop = asyncio.get_event_loop()
-
+loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
 async def list_games(request):
     async with request.app['db'].acquire() as conn:
@@ -55,8 +55,8 @@ async def get_game(request):
             'moves': moves
         })
 
-async def websocket(request):
-    link = request.match_info['link']
+async def websocket(request: web.Request) -> web.WebSocketResponse:
+    link: str = request.match_info['link']
 
     async with request.app['db'].acquire() as conn:
         try:
@@ -67,20 +67,20 @@ async def websocket(request):
         except db.RecordNotFound as e:
             raise web.HTTPNotFound(text=str(e))
 
-    ws = web.WebSocketResponse(heartbeat=10, receive_timeout=20)
+    ws: web.Response = web.WebSocketResponse(heartbeat=10, receive_timeout=20)
     await ws.prepare(request)
 
-    game_id = game['id']
+    game_id: int = game['id']
 
     # add current WS to list of this game
     request.app['ws'][game_id].append(ws)
 
     # create new logger for this websocket session
-    ws_logger = logging.getLogger(f'WS{id(request)}')
+    ws_logger: logging.Logger = logging.getLogger(f'WS{id(request)}')
     ws_logger.propagate = False
-    ch = logging.StreamHandler(sys.stdout)
+    ch: logging.StreamHandler = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(f'%(asctime)s - %(name)s - %(levelname)s - [GAME: {game_id}] %(message)s')
+    formatter: logging.Formatter = logging.Formatter(f'%(asctime)s - %(name)s - %(levelname)s - [GAME: {game_id}] %(message)s')
     ch.setFormatter(formatter)
     ws_logger.addHandler(ch)
 
@@ -89,7 +89,7 @@ async def websocket(request):
     async for msg in ws:
         if msg.type == WSMsgType.TEXT:
             try:
-                data = json.loads(msg.data)
+                data: Dict[str, Any] = json.loads(msg.data)
             except ValueError:
                 ws_logger.debug(f'Wrong message: {msg.data}')
                 continue
@@ -106,14 +106,14 @@ async def websocket(request):
                     move_no, x, y = int(data['move_no']), int(data['x']), int(data['y'])
                     _pass = bool(data['pass'])
                 except ValueError:
-                    ws_logger.debug(f'Cant parse data: {data}')
+                    ws_logger.debug(f'Can\'t parse data: {data}')
                     continue
 
                 # writing update to database
                 async with request.app['db'].acquire() as conn:
                     move_no, x, y, _pass = await db.do_move(conn, game_id, x, y, _pass)
 
-                # notifying online users about update
+                # notifying users online about update
                 for i, _ws in enumerate(request.app['ws'][game_id]):
                     ws_logger.debug(f'Sending to {i} client socket (closed: {_ws.closed}, close_code: {_ws.close_code})...')
                     await _ws.send_json({
@@ -128,7 +128,7 @@ async def websocket(request):
                 pass
             elif msg_type == 'game_finish':
                 pass
-            elif msg_type == 'chat_send':
+            elif msg_type == 'chat_message':
                 pass
             else:
                 ws_logger.debug(f'Unexpected type "{msg_type}": {data}')
