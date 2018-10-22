@@ -298,7 +298,9 @@ class Game extends Component {
                         size={this.state.gobanSize}
                         stones={this.state.gobanHistory[this.state.move]}
                         move={this.state.move}
-                        onMove={this.doMove}
+                        onMove={(!this.state.finished) ? this.doMove : () => {
+                            console.log('Game is finished!');
+                        }}
                     />
                     {actionButtons}
                 </>
