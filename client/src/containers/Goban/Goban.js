@@ -6,12 +6,12 @@ import GobanPoint from '../../components/GobanPoint/GobanPoint';
 
 import './Goban.css';
 
-import stone_sound1 from './sounds/stone1.ogg';
-import stone_sound2 from './sounds/stone2.ogg';
-import stone_sound3 from './sounds/stone3.ogg';
-import stone_sound4 from './sounds/stone4.ogg';
-import stone_sound5 from './sounds/stone5.ogg';
-import pass_sound from './sounds/pass.ogg';
+import stone_sound1 from '../../assets/sounds/stone1.ogg';
+import stone_sound2 from '../../assets/sounds/stone2.ogg';
+import stone_sound3 from '../../assets/sounds/stone3.ogg';
+import stone_sound4 from '../../assets/sounds/stone4.ogg';
+import stone_sound5 from '../../assets/sounds/stone5.ogg';
+import pass_sound from '../../assets/sounds/pass.ogg';
 
 const stone_sounds = [
     stone_sound1,

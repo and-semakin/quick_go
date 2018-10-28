@@ -10,7 +10,8 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-import Goban from '../Goban/Goban';
+// import Goban from '../Goban/Goban';
+import GobanKonva from '../../components/GobanKonva/GobanKonva';
 import axios from 'axios';
 
 import { isGobanEqual, updateGoban } from '../../go_helpers';
@@ -291,17 +292,19 @@ class Game extends Component {
                     <p>Move #{this.state.move + 1}, <b>{next_move}</b> goes ({next_move_you})</p>
                     <p>Black captured: {this.state.capturedBlack}</p>
                     <p>White captured: {this.state.capturedWhite}</p>
-                    {this.state.finished ? <p>Result: {this.state.result}</p>: null}
-                    <Goban
-                        showHover={!this.state.finished && Number(!this.state.isBlack) === this.state.move % 2}
-                        recentMove={this.state.recentMove}
-                        size={this.state.gobanSize}
-                        stones={this.state.gobanHistory[this.state.move]}
-                        move={this.state.move}
-                        onMove={(!this.state.finished) ? this.doMove : () => {
-                            console.log('Game is finished!');
-                        }}
-                    />
+                    {this.state.finished ? <p>Result: {this.state.result}</p> : null}
+                    <div className="GameGoban">
+                        <GobanKonva
+                            showHover={!this.state.finished && Number(!this.state.isBlack) === this.state.move % 2}
+                            recentMove={this.state.recentMove}
+                            size={this.state.gobanSize}
+                            stones={this.state.gobanHistory[this.state.move]}
+                            move={this.state.move}
+                            onMove={(!this.state.finished) ? this.doMove : () => {
+                                console.log('Game is finished!');
+                            }}
+                        />
+                    </div>
                     {actionButtons}
                 </>
             );
