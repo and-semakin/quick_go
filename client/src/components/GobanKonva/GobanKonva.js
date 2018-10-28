@@ -3,6 +3,7 @@ import { Stage, Layer, Rect, Circle } from 'react-konva';
 import Sound from 'react-sound';
 
 import GobanCells from './GobanCells/GobanCells';
+import GobanCoordinates from './GobanCoordinates/GobanCoordinates';
 
 import stone_sound1 from '../../assets/sounds/stone1.ogg';
 import stone_sound2 from '../../assets/sounds/stone2.ogg';
@@ -89,7 +90,7 @@ class GobanKonva extends Component {
             if (size === 19) stars = stars_19;
 
             cellSize = (size > 13) ? 30 : 40;
-            borderSize = (size > 13) ? 6 : 10;
+            borderSize = (size > 13) ? 12 : 20;
             width = (cellSize * size) + (borderSize * 2);
             height = width;
         }
@@ -161,6 +162,11 @@ class GobanKonva extends Component {
                             fill="#d58220"
                         />
                         {drawnStars}
+                        <GobanCoordinates
+                            size={this.state.size}
+                            cellSize={this.state.cellSize}
+                            borderSize={this.state.borderSize}
+                        />
                         <GobanCells
                             preventDefault={false}
                             showHover={this.props.showHover}
