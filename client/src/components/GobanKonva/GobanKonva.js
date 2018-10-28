@@ -90,7 +90,7 @@ class GobanKonva extends Component {
             if (size === 19) stars = stars_19;
 
             cellSize = (size > 13) ? 30 : 40;
-            borderSize = (size > 13) ? 12 : 20;
+            borderSize = (size > 13) ? 18 : 20;
             width = (cellSize * size) + (borderSize * 2);
             height = width;
         }
