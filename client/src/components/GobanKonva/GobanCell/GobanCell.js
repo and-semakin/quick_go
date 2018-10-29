@@ -76,6 +76,7 @@ class GobanCell extends Component {
                 onMouseEnter={this.onMouseOver}
                 onMouseLeave={this.onMouseLeave}
                 onClick={this.onClick}
+                onTap={this.onClick}
             >
                 {/* for hover */}
                 <Rect

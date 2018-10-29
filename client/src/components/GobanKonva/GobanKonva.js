@@ -5,6 +5,8 @@ import Sound from 'react-sound';
 import GobanCells from './GobanCells/GobanCells';
 import GobanCoordinates from './GobanCoordinates/GobanCoordinates';
 
+import './GobanKonva.css';
+
 import stone_sound1 from '../../assets/sounds/stone1.ogg';
 import stone_sound2 from '../../assets/sounds/stone2.ogg';
 import stone_sound3 from '../../assets/sounds/stone3.ogg';
@@ -78,11 +80,6 @@ class GobanKonva extends Component {
         } = state;
         playSounds = false;
 
-        if (props.move !== move) {
-            move = props.move;
-            playSounds = !state.initialRender;
-        }
-
         if (props.size !== size) {
             size = props.size;
             if (size === 9) stars = stars_9;
@@ -151,6 +148,10 @@ class GobanKonva extends Component {
                     width={this.state.width}
                     height={this.state.height}
                     preventDefault={false}
+                    style={{
+                        height: "100%",
+                        width: "100%",
+                    }}
                 >
                     <Layer>
                         <Rect

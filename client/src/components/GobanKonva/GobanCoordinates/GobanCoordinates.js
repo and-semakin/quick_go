@@ -22,7 +22,7 @@ const gobanCoordinates = (props) => {
                 align="center"
                 verticalAlign="middle"
                 x={0}
-                y={props.borderSize + (props.cellSize * i)}
+                y={props.borderSize + (props.cellSize * (props.size - 1 - i))}
                 width={props.borderSize}
                 height={props.cellSize}
             />
@@ -36,7 +36,7 @@ const gobanCoordinates = (props) => {
                 align="center"
                 verticalAlign="middle"
                 x={props.borderSize + (props.cellSize) * props.size}
-                y={props.borderSize + (props.cellSize * i)}
+                y={props.borderSize + (props.cellSize * (props.size - 1 - i))}
                 width={props.borderSize}
                 height={props.cellSize}
             />
