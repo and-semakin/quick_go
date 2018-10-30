@@ -9,6 +9,8 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import VolumeOffIcon from '@material-ui/icons/VolumeOff';
+import VolumeUpIcon from '@material-ui/icons/VolumeUp';
 
 import GobanKonva from '../GobanKonva/GobanKonva';
 import axios from 'axios';
@@ -40,6 +42,7 @@ class Game extends Component {
         errorOpened: false,
         countPassesInARow: 0,
         resignDialogOpened: false,
+        mute: false,
     }
 
     componentDidMount() {
@@ -251,6 +254,12 @@ class Game extends Component {
         this.socket.send(msg);
     }
 
+    soundsToggleHandler = () => {
+        this.setState((state) => ({
+            mute: !state.mute,
+        }));
+    }
+
     render() {
         const next_move = (this.state.move % 2 === 0) ? 'black' : 'white'
         const next_move_you = (this.state.move % 2 !== Number(this.state.isBlack)) ? 'you' : 'your opponent'
@@ -288,7 +297,7 @@ class Game extends Component {
         if (this.state.gobanSize > 0) {
             goban = (
                 <>
-                    <p>Move #{this.state.move + 1}, <b>{next_move}</b> goes ({next_move_you})</p>
+                    <p>Move #{this.state.move + 1}, <b>{next_move}</b> to go ({next_move_you})</p>
                     <p>Black captured: {this.state.capturedBlack}</p>
                     <p>White captured: {this.state.capturedWhite}</p>
                     {this.state.finished ? <p>Result: {this.state.result}</p> : null}
@@ -302,6 +311,7 @@ class Game extends Component {
                             onMove={(!this.state.finished) ? this.doMove : () => {
                                 console.log('Game is finished!');
                             }}
+                            mute={this.state.mute}
                         />
                     </div>
                     {actionButtons}
@@ -311,6 +321,20 @@ class Game extends Component {
 
         return (
             <>
+                <div className="settings">
+                    <IconButton
+                        title={this.state.mute ? "Sounds off" : "Sounds on"}
+                        aria-label="Mute/unmute"
+                        color="inherit"
+                        onClick={this.soundsToggleHandler}
+                    >
+                        {
+                            (this.state.mute)
+                                ? <VolumeOffIcon />
+                                : <VolumeUpIcon />
+                        }
+                    </IconButton>
+                </div>
                 <div className="Game">
                     {goban}
                 </div>

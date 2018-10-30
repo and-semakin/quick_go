@@ -19,3 +19,12 @@
 .action-buttons > button {
     margin: 5px;
 }
+
+.settings {
+    left: 5px;
+    bottom: 5px;
+    position: absolute;
+    display: flex;
+    justify-content: right;
+    overflow: auto;
+}
