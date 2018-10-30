@@ -10,8 +10,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-// import Goban from '../Goban/Goban';
-import GobanKonva from '../../components/GobanKonva/GobanKonva';
+import GobanKonva from '../GobanKonva/GobanKonva';
 import axios from 'axios';
 
 import { isGobanEqual, updateGoban } from '../../go_helpers';

@@ -80,6 +80,11 @@ class GobanKonva extends Component {
         } = state;
         playSounds = false;
 
+        if (props.move !== move) {
+            move = props.move;
+            playSounds = !state.initialRender;
+        }
+
         if (props.size !== size) {
             size = props.size;
             if (size === 9) stars = stars_9;
