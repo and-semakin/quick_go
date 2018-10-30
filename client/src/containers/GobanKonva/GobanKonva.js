@@ -165,7 +165,7 @@ class GobanKonva extends Component {
                             y={0}
                             width={this.state.width}
                             height={this.state.height}
-                            fill="#d58220"
+                            fill="#dcb35c"
                         />
                         {drawnStars}
                         <GobanCoordinates
