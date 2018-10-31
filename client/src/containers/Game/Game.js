@@ -43,6 +43,11 @@ class Game extends Component {
         countPassesInARow: 0,
         resignDialogOpened: false,
         mute: false,
+        moveSubmitEnabled: undefined,
+        undoRequestsEnabled: undefined,
+        chatEnabled: undefined,
+        nextMove: undefined,
+        nextGoban: undefined,
     }
 
     componentDidMount() {
@@ -51,11 +56,14 @@ class Game extends Component {
             .then(response => {
                 const {
                     finished,
-                    gobanSize,
-                    isBlack,
+                    goban_size: gobanSize,
+                    is_black: isBlack,
                     move,
                     moves,
                     result,
+                    move_submit_enabled: moveSubmitEnabled,
+                    undo_requests_enabled: undoRequestsEnabled,
+                    chat_enabled: chatEnabled,
                 } = response.data;
 
                 const gobanHistory = [[...Array(gobanSize)].map(e => Array(gobanSize))];
@@ -100,7 +108,10 @@ class Game extends Component {
                     move,
                     gobanHistory,
                     recentMove,
-                    countPassesInARow
+                    countPassesInARow,
+                    moveSubmitEnabled,
+                    undoRequestsEnabled,
+                    chatEnabled,
                 })
             })
             .catch(error => {
@@ -168,6 +179,8 @@ class Game extends Component {
                         capturedWhite,
                         recentMove: pass ? [null, null] : [x, y],
                         countPassesInARow,
+                        nextMove: undefined,
+                        nextGoban: undefined,
                     };
                 });
                 break;
@@ -177,6 +190,8 @@ class Game extends Component {
                     finished,
                     result,
                     finishDate: finish_date,
+                    nextMove: undefined,
+                    nextGoban: undefined,
                 });
                 break;
             default:
@@ -211,6 +226,18 @@ class Game extends Component {
         });
     }
 
+    sendMove = (move, x, y, pass = false) => {
+        const msg = JSON.stringify({
+            type: 'game_move',
+            move_no: move,
+            x,
+            y,
+            pass,
+        });
+        console.log('->', msg);
+        this.socket.send(msg);
+    }
+
     doMove = (x, y, pass = false) => {
         const move = this.state.move;
         if (move % 2 === Number(this.state.isBlack)) {
@@ -243,15 +270,14 @@ class Game extends Component {
             return;
         }
 
-        const msg = JSON.stringify({
-            type: 'game_move',
-            move_no: move,
-            x,
-            y,
-            pass,
-        });
-        console.log('->', msg);
-        this.socket.send(msg);
+        if (this.state.moveSubmitEnabled) {
+            this.setState({
+                nextMove: [x, y],
+                nextGoban: goban,
+            });
+        } else {
+            this.sendMove(move, x, y, pass)
+        }
     }
 
     soundsToggleHandler = () => {
@@ -264,35 +290,56 @@ class Game extends Component {
         const next_move = (this.state.move % 2 === 0) ? 'black' : 'white'
         const next_move_you = (this.state.move % 2 !== Number(this.state.isBlack)) ? 'you' : 'your opponent'
         let goban = null;
-        let actionButtons = null;
+        let finishButton = null;
+        let submitButton = null;
 
         if (!this.state.finished) {
-            if (this.state.countPassesInARow < 2) {
-                actionButtons = (
-                    <div className="action-buttons">
-                        <Button
-                            disabled={this.state.move % 2 === Number(this.state.isBlack)}
-                            color="primary"
-                            variant="outlined"
-                            onClick={() => this.doMove(-1, -1, true)}
-                        >Pass</Button>
-                        <Button
-                            variant="outlined"
-                            onClick={() => this.showResignConfirmHandler()}
-                        >Resign</Button>
-                    </div>
+            if (this.state.moveSubmitEnabled && this.state.nextMove) {
+                submitButton = (
+                    <Button
+                        color="primary"
+                        variant="outlined"
+                        onClick={() => this.sendMove(
+                            this.state.move,
+                            this.state.nextMove[0],
+                            this.state.nextMove[1],
+                            false,
+                        )}
+                    >Submit</Button>
                 );
             } else {
-                actionButtons = (
-                    <div className="action-buttons">
-                        <Button
-                            color="primary"
-                            variant="contained"
-                        >Finish Game</Button>
-                    </div>
+                submitButton = (
+                    <Button
+                        disabled={this.state.move % 2 === Number(this.state.isBlack)}
+                        color="primary"
+                        variant="outlined"
+                        onClick={() => this.doMove(-1, -1, true)}
+                    >Pass</Button>
+                );
+            }
+            if (this.state.countPassesInARow < 2) {
+                finishButton = (
+                    <Button
+                        variant="outlined"
+                        onClick={() => this.showResignConfirmHandler()}
+                    >Resign</Button>
+                );
+            } else {
+                finishButton = (
+                    <Button
+                        color="primary"
+                        variant="contained"
+                    >Finish Game</Button>
                 );
             }
         }
+
+        const actionButtons = (
+            <div className="action-buttons">
+                {submitButton}
+                {finishButton}
+            </div>
+        );
 
         if (this.state.gobanSize > 0) {
             goban = (
@@ -304,9 +351,9 @@ class Game extends Component {
                     <div className="GameGoban">
                         <GobanKonva
                             showHover={!this.state.finished && Number(!this.state.isBlack) === this.state.move % 2}
-                            recentMove={this.state.recentMove}
+                            recentMove={this.state.nextMove || this.state.recentMove}
                             size={this.state.gobanSize}
-                            stones={this.state.gobanHistory[this.state.move]}
+                            stones={this.state.nextGoban || this.state.gobanHistory[this.state.move]}
                             move={this.state.move}
                             onMove={(!this.state.finished) ? this.doMove : () => {
                                 console.log('Game is finished!');

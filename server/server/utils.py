@@ -15,3 +15,7 @@ TRAFARET = T.Dict({
     T.Key('host'): T.IP,
     T.Key('port'): T.Int(),
 })
+
+
+def to_bool(s: str) -> bool:
+    return (s.lower() in ['1', 'true', 'yes', 'y', 't'])

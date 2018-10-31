@@ -8,6 +8,7 @@ import sys
 from aiohttp import web, WSMsgType
 
 import server.db
+from server.utils import to_bool
 
 loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
@@ -22,9 +23,14 @@ async def list_games(request):
 
 async def new_game(request):
     data = await request.post()
-    goban_size = data.get('goban_size', 9)
+    goban_size: int = int(data.get('goban_size', 9))
+    move_submit_enabled: bool = to_bool(data.get('move_submit_enabled', 'true'))
     async with request.app['db'].acquire() as conn:
-        game = await server.db.new_game(conn, goban_size)
+        game = await server.db.new_game(
+            conn,
+            goban_size,
+            move_submit_enabled
+        )
         return web.json_response({
             'link_black': game['link_black'],
             'link_white': game['link_white'],
@@ -56,19 +62,19 @@ async def get_game(request):
         }, messages))
         logging.debug(messages)
         return web.json_response({
-            'isBlack': (link == game['link_black']),
+            'is_black': (link == game['link_black']),
             'link': link,
-            'gobanSize': game['goban_size'],
+            'goban_size': game['goban_size'],
             'move': game['move'],
             'finished': game['finished'],
             'result': game['result'],
             'start_date': game['start_date'].timestamp(),
             'finish_date': game['finish_date'].timestamp() if game['finish_date'] else None,
             'moves': moves,
-            'chatMessages': messages,
-            'moveSubmitEnabled': game['move_submit_enabled'],
-            'undoRequestsEnabled': game['undo_requests_enabled'],
-            'chatEnabled': game['chat_enabled'],
+            'chat_messages': messages,
+            'move_submit_enabled': game['move_submit_enabled'],
+            'undo_requests_enabled': game['undo_requests_enabled'],
+            'chat_enabled': game['chat_enabled'],
         })
 
 

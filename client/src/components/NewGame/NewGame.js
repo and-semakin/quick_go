@@ -2,42 +2,22 @@ import React, { Component } from 'react';
 import Button from '@material-ui/core/Button';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
+import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
+import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
+import CopyButton from '../CopyButton/CopyButton';
 import './NewGame.css';
-
-function fallbackCopyTextToClipboard(text) {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
-    try {
-        document.execCommand('copy');
-    } catch (err) {
-        console.error('Fallback: Oops, unable to copy', err);
-    }
-
-    document.body.removeChild(textArea);
-}
-
-function copyTextToClipboard(text) {
-    if (!navigator.clipboard) {
-        fallbackCopyTextToClipboard(text);
-        return;
-    }
-    navigator.clipboard.writeText(text);
-}
 
 class NewGame extends Component {
     state = {
         gobanSize: '9',
         gobanSizes: ['9', '13', '19'],
+        moveSubmitEnabled: true,
         blackLink: '',
         whiteLink: '',
     }
@@ -49,6 +29,7 @@ class NewGame extends Component {
     handleButtonClick = () => {
         const postData = new FormData();
         postData.set('goban_size', this.state.gobanSize);
+        postData.set('move_submit_enabled', this.state.moveSubmitEnabled);
         axios.post('/api/new', postData).then(response => {
             this.setState({
                 blackLink: response.data.link_black,
@@ -57,6 +38,10 @@ class NewGame extends Component {
         }).catch(error => {
             console.log(error);
         });
+    }
+
+    handleSwitchToggle = name => event => {
+        this.setState({ [name]: event.target.checked });
     }
 
     render() {
@@ -82,9 +67,10 @@ class NewGame extends Component {
                             margin="dense"
                             value={full_link_prefix + this.state.blackLink}
                         />
-                        <Button onClick={() => {
-                            copyTextToClipboard(full_link_prefix + this.state.blackLink);
-                        }}>Copy</Button>
+                        <CopyButton
+                            value={full_link_prefix + this.state.blackLink}
+                            width={69}
+                        >Copy</CopyButton>
                         <Button onClick={() => {
                             this.props.history.push(link_prefix + this.state.blackLink);
                         }}>Open</Button>
@@ -96,10 +82,10 @@ class NewGame extends Component {
                             margin="dense"
                             value={full_link_prefix + this.state.whiteLink}
                         />
-                        <Button 
-                        onClick={() => {
-                            copyTextToClipboard(full_link_prefix + this.state.whiteLink);
-                        }}>Copy</Button>
+                        <CopyButton
+                            value={full_link_prefix + this.state.whiteLink}
+                            width={69}
+                        >Copy</CopyButton>
                         <Button onClick={() => {
                             this.props.history.push(link_prefix + this.state.whiteLink);
                         }}>Open</Button>
@@ -122,6 +108,19 @@ class NewGame extends Component {
                         >
                             {gobanSizesRadioButtons}
                         </RadioGroup>
+
+                        <FormLabel component="legend">Settings</FormLabel>
+                        <FormGroup>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={this.state.moveSubmitEnabled}
+                                        onChange={this.handleSwitchToggle('moveSubmitEnabled')}
+                                    />
+                                }
+                                label="Submit move before send"
+                            />
+                        </FormGroup>
                     </FormControl>
                 </div>
                 <div>
