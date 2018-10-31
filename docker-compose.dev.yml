@@ -26,3 +26,5 @@ services:
       retries: 10
     volumes:
       - /srv/quick_go:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
