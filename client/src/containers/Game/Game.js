@@ -271,10 +271,23 @@ class Game extends Component {
         }
 
         if (this.state.moveSubmitEnabled) {
-            this.setState({
-                nextMove: [x, y],
-                nextGoban: goban,
-            });
+            if (pass) {
+                this.sendMove(move, x, y, pass)
+            } else {
+                this.setState((state) => {
+                    if (state.nextMove && x === state.nextMove[0] && y === state.nextMove[1]) {
+                        return {
+                            nextMove: undefined,
+                            nextGoban: undefined,
+                        };
+                    } else {
+                        return {
+                            nextMove: [x, y],
+                            nextGoban: goban,
+                        };
+                    }
+                });
+            }
         } else {
             this.sendMove(move, x, y, pass)
         }
