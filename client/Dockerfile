@@ -2,6 +2,8 @@ FROM node:alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
+COPY config config
+COPY scripts scripts
 COPY public public
 COPY src src
 RUN npm run-script build
