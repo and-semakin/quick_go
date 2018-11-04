@@ -16,7 +16,7 @@ build_frontend:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
     - docker build
-        --tag go-client
+        --tag client
         --tag $CI_REGISTRY_IMAGE/client:$CI_COMMIT_REF_NAME
         --tag $CI_REGISTRY_IMAGE/client:latest
         ./client
@@ -25,6 +25,50 @@ build_frontend:
         docker push $CI_REGISTRY_IMAGE/client:latest;
       fi
 
+build_backend:
+  stage: build
+  image: docker:stable
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+  before_script:
+    - docker info
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+  script:
+    - docker build
+        --tag server
+        --tag $CI_REGISTRY_IMAGE/server:$CI_COMMIT_REF_NAME
+        --tag $CI_REGISTRY_IMAGE/server:latest
+        ./server
+    - docker push $CI_REGISTRY_IMAGE/server:$CI_COMMIT_REF_NAME
+    - if [ $CI_COMMIT_REF_NAME = "master" ]; then
+        docker push $CI_REGISTRY_IMAGE/server:latest;
+      fi
+
+
+build_https:
+  stage: build
+  image: docker:stable
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+  before_script:
+    - docker info
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+  script:
+    - docker build
+        --tag https
+        --tag $CI_REGISTRY_IMAGE/https:$CI_COMMIT_REF_NAME
+        --tag $CI_REGISTRY_IMAGE/https:latest
+        ./https
+    - docker push $CI_REGISTRY_IMAGE/https:$CI_COMMIT_REF_NAME
+    - if [ $CI_COMMIT_REF_NAME = "master" ]; then
+        docker push $CI_REGISTRY_IMAGE/https:latest;
+      fi
 
 test_frontend:
   stage: test
@@ -38,4 +82,6 @@ lint_frontend:
   stage: test
   image: node:alpine
   script:
-    - echo 'kek'
+    - cd client
+    - npm install
+    - ./node_modules/.bin/eslint src

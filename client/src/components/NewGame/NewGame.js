@@ -15,124 +15,137 @@ import './NewGame.css';
 
 class NewGame extends Component {
     state = {
-        gobanSize: '9',
-        gobanSizes: ['9', '13', '19'],
-        moveSubmitEnabled: true,
-        blackLink: '',
-        whiteLink: '',
+      gobanSize: '9',
+      gobanSizes: ['9', '13', '19'],
+      moveSubmitEnabled: true,
+      blackLink: '',
+      whiteLink: '',
     }
 
-    handleGobanSizeChange = event => {
-        this.setState({ gobanSize: event.target.value });
+    handleGobanSizeChange = (event) => {
+      this.setState({ gobanSize: event.target.value });
     };
 
     handleButtonClick = () => {
-        const postData = new FormData();
-        postData.set('goban_size', this.state.gobanSize);
-        postData.set('move_submit_enabled', this.state.moveSubmitEnabled);
-        axios.post('/api/new', postData).then(response => {
-            this.setState({
-                blackLink: response.data.link_black,
-                whiteLink: response.data.link_white,
-            });
-        }).catch(error => {
-            console.log(error);
+      const postData = new FormData();
+      postData.set('goban_size', this.state.gobanSize);
+      postData.set('move_submit_enabled', this.state.moveSubmitEnabled);
+      axios.post('/api/new', postData).then((response) => {
+        this.setState({
+          blackLink: response.data.link_black,
+          whiteLink: response.data.link_white,
         });
+      }).catch((error) => {
+        console.log(error);
+      });
     }
 
-    handleSwitchToggle = name => event => {
-        this.setState({ [name]: event.target.checked });
+    handleSwitchToggle = name => (event) => {
+      this.setState({ [name]: event.target.checked });
     }
 
     render() {
-        const gobanSizesRadioButtons = this.state.gobanSizes.map(size => (
-            <FormControlLabel
-                key={size}
-                value={size}
-                control={<Radio />}
-                label={String(size) + ' x ' + String(size)} />
-        ));
+      const gobanSizesRadioButtons = this.state.gobanSizes.map(size => (
+        <FormControlLabel
+          key={size}
+          value={size}
+          control={<Radio />}
+          label={`${String(size)} x ${String(size)}`}
+        />
+      ));
 
-        const link_prefix = '/game/';
-        const full_link_prefix = document.location.origin + link_prefix;
+      const link_prefix = '/game/';
+      const full_link_prefix = document.location.origin + link_prefix;
 
-        let links = null;
-        if (this.state.blackLink) {
-            links = (
-                <div>
-                    <div className="link-input">
-                        <TextField
-                            label="Black"
-                            variant="outlined"
-                            margin="dense"
-                            value={full_link_prefix + this.state.blackLink}
-                        />
-                        <CopyButton
-                            value={full_link_prefix + this.state.blackLink}
-                            width={69}
-                        >Copy</CopyButton>
-                        <Button onClick={() => {
-                            this.props.history.push(link_prefix + this.state.blackLink);
-                        }}>Open</Button>
-                    </div>
-                    <div className="link-input">
-                        <TextField
-                            label="White"
-                            variant="outlined"
-                            margin="dense"
-                            value={full_link_prefix + this.state.whiteLink}
-                        />
-                        <CopyButton
-                            value={full_link_prefix + this.state.whiteLink}
-                            width={69}
-                        >Copy</CopyButton>
-                        <Button onClick={() => {
-                            this.props.history.push(link_prefix + this.state.whiteLink);
-                        }}>Open</Button>
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <div>
-                <h1>Play Go</h1>
-                <div>
-                    <FormControl component="fieldset">
-                        <FormLabel component="legend">Goban Size</FormLabel>
-                        <RadioGroup
-                            aria-label="Goban size"
-                            name="gobanSize"
-                            value={this.state.gobanSize}
-                            onChange={this.handleGobanSizeChange}
-                        >
-                            {gobanSizesRadioButtons}
-                        </RadioGroup>
-
-                        <FormLabel component="legend">Settings</FormLabel>
-                        <FormGroup>
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={this.state.moveSubmitEnabled}
-                                        onChange={this.handleSwitchToggle('moveSubmitEnabled')}
-                                    />
-                                }
-                                label="Submit move before send"
-                            />
-                        </FormGroup>
-                    </FormControl>
-                </div>
-                <div>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={this.handleButtonClick}
-                    >Start!</Button>
-                </div>
-                {links}
+      let links = null;
+      if (this.state.blackLink) {
+        links = (
+          <div>
+            <div className="link-input">
+              <TextField
+                label="Black"
+                variant="outlined"
+                margin="dense"
+                value={full_link_prefix + this.state.blackLink}
+              />
+              <CopyButton
+                value={full_link_prefix + this.state.blackLink}
+                width={69}
+              >
+Copy
+              </CopyButton>
+              <Button onClick={() => {
+                this.props.history.push(link_prefix + this.state.blackLink);
+              }}
+              >
+Open
+              </Button>
             </div>
+            <div className="link-input">
+              <TextField
+                label="White"
+                variant="outlined"
+                margin="dense"
+                value={full_link_prefix + this.state.whiteLink}
+              />
+              <CopyButton
+                value={full_link_prefix + this.state.whiteLink}
+                width={69}
+              >
+Copy
+              </CopyButton>
+              <Button onClick={() => {
+                this.props.history.push(link_prefix + this.state.whiteLink);
+              }}
+              >
+Open
+              </Button>
+            </div>
+          </div>
         );
+      }
+
+      return (
+        <div>
+          <h1>Play Go</h1>
+          <div>
+            <FormControl component="fieldset">
+              <FormLabel component="legend">Goban Size</FormLabel>
+              <RadioGroup
+                aria-label="Goban size"
+                name="gobanSize"
+                value={this.state.gobanSize}
+                onChange={this.handleGobanSizeChange}
+              >
+                {gobanSizesRadioButtons}
+              </RadioGroup>
+
+              <FormLabel component="legend">Settings</FormLabel>
+              <FormGroup>
+                <FormControlLabel
+                  control={(
+                    <Switch
+                      checked={this.state.moveSubmitEnabled}
+                      onChange={this.handleSwitchToggle('moveSubmitEnabled')}
+                    />
+)}
+                  label="Submit move before send"
+                />
+              </FormGroup>
+            </FormControl>
+          </div>
+          <div>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={this.handleButtonClick}
+            >
+Start!
+            </Button>
+          </div>
+          {links}
+        </div>
+      );
     }
 }
 
