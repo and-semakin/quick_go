@@ -6,16 +6,19 @@ export const n2xy = (n, size) => {
   return [x, y];
 };
 
-export const findGroup = (goban, n, isBlack = undefined, visited = []) => {
+export const findGroup = (goban, n, isBlackOpt = undefined, visited = []) => {
   const visitedCopy = visited.slice();
   visitedCopy.push(n);
 
   const size = goban.length;
   const [x, y] = n2xy(n, size);
 
-  if (isBlack === undefined) {
+  let isBlack;
+  if (isBlackOpt === undefined) {
     // set current color if not set
     isBlack = (goban[x][y] % 2 === 0);
+  } else {
+    isBlack = isBlackOpt;
   }
 
   let currentGroup = [];
@@ -25,28 +28,28 @@ export const findGroup = (goban, n, isBlack = undefined, visited = []) => {
     currentGroup.push(n);
 
     const
-      n_up = n - size;
+      nUp = n - size;
 
 
-    const n_left = n - 1;
+    const nLeft = n - 1;
 
 
-    const n_down = n + size;
+    const nDown = n + size;
 
 
-    const n_right = n + 1;
+    const nRight = n + 1;
 
-    if (x > 0 && !visitedCopy.includes(n_up)) { // up
-      currentGroup = currentGroup.concat(findGroup(goban, n_up, isBlack, visitedCopy));
+    if (x > 0 && !visitedCopy.includes(nUp)) { // up
+      currentGroup = currentGroup.concat(findGroup(goban, nUp, isBlack, visitedCopy));
     }
-    if (y > 0 && !visitedCopy.includes(n_left)) { // left
-      currentGroup = currentGroup.concat(findGroup(goban, n_left, isBlack, visitedCopy));
+    if (y > 0 && !visitedCopy.includes(nLeft)) { // left
+      currentGroup = currentGroup.concat(findGroup(goban, nLeft, isBlack, visitedCopy));
     }
-    if (x < size - 1 && !visitedCopy.includes(n_down)) { // down
-      currentGroup = currentGroup.concat(findGroup(goban, n_down, isBlack, visitedCopy));
+    if (x < size - 1 && !visitedCopy.includes(nDown)) { // down
+      currentGroup = currentGroup.concat(findGroup(goban, nDown, isBlack, visitedCopy));
     }
-    if (y < size - 1 && !visitedCopy.includes(n_right)) { // right
-      currentGroup = currentGroup.concat(findGroup(goban, n_right, isBlack, visitedCopy));
+    if (y < size - 1 && !visitedCopy.includes(nRight)) { // right
+      currentGroup = currentGroup.concat(findGroup(goban, nRight, isBlack, visitedCopy));
     }
   }
 
@@ -59,31 +62,31 @@ export const findLiberties = (goban, n) => {
   const group = findGroup(goban, n);
 
   const liberties = new Set();
-  group.forEach((n) => {
-    const [x, y] = n2xy(n, size);
+  group.forEach((groupStoneN) => {
+    const [x, y] = n2xy(groupStoneN, size);
     const
-      n_up = n - size;
+      nUp = groupStoneN - size;
 
 
-    const n_left = n - 1;
+    const nLeft = groupStoneN - 1;
 
 
-    const n_down = n + size;
+    const nDown = groupStoneN + size;
 
 
-    const n_right = n + 1;
+    const nRight = groupStoneN + 1;
 
-    if (x > 0 && !group.includes(n_up) && goban[x - 1][y] === undefined) { // up
-      liberties.add(n_up);
+    if (x > 0 && !group.includes(nUp) && goban[x - 1][y] === undefined) { // up
+      liberties.add(nUp);
     }
-    if (y > 0 && !group.includes(n_left) && goban[x][y - 1] === undefined) { // left
-      liberties.add(n_left);
+    if (y > 0 && !group.includes(nLeft) && goban[x][y - 1] === undefined) { // left
+      liberties.add(nLeft);
     }
-    if (x < size - 1 && !group.includes(n_down) && goban[x + 1][y] === undefined) { // down
-      liberties.add(n_down);
+    if (x < size - 1 && !group.includes(nDown) && goban[x + 1][y] === undefined) { // down
+      liberties.add(nDown);
     }
-    if (y < size - 1 && !group.includes(n_right) && goban[x][y + 1] === undefined) { // right
-      liberties.add(n_right);
+    if (y < size - 1 && !group.includes(nRight) && goban[x][y + 1] === undefined) { // right
+      liberties.add(nRight);
     }
   });
   return liberties;
@@ -92,9 +95,10 @@ export const findLiberties = (goban, n) => {
 export const captureGroup = (goban, n) => {
   const size = goban.length;
 
-  const group = findGroup(goban, n).map(n => n2xy(n, size));
+  const group = findGroup(goban, n).map(groupN => n2xy(groupN, size));
 
   group.forEach(([x, y]) => {
+    // eslint-disable-next-line no-param-reassign
     goban[x][y] = undefined;
   });
 
@@ -102,18 +106,21 @@ export const captureGroup = (goban, n) => {
 };
 
 export const goban2boolarray = goban => goban.map(gobanRow => gobanRow.map((point) => {
-  if (!isNaN(point)) {
+  if (!Number.isNaN(point)) {
     return point % 2;
   }
   return undefined;
 }));
 
 export const isGobanEqual = (goban1, goban2) => {
-  goban1 = goban2boolarray(goban1);
-  goban2 = goban2boolarray(goban2);
-  return goban1.length === goban2.length && goban1.every((goban1row, i) => {
-    const goban2row = goban2[i];
-    return goban1row.length === goban2row.length && goban1row.every((value, j) => value === goban2row[j]);
+  const goban1b = goban2boolarray(goban1);
+  const goban2b = goban2boolarray(goban2);
+  return goban1b.length === goban2b.length && goban1b.every((goban1row, i) => {
+    const goban2row = goban2b[i];
+    return (
+      goban1row.length === goban2row.length
+      && goban1row.every((value, j) => value === goban2row[j])
+    );
   });
 };
 
@@ -139,17 +146,15 @@ export const updateGoban = (sourceGoban, move, x, y, pass) => {
 
   const updatedGroup = findGroup(goban, xy2n(x, y, gobanSize));
 
-  for (let i = 0; i < gobanSize; i++) {
-    for (let j = 0; j < gobanSize; j++) {
+  for (let i = 0; i < gobanSize; i += 1) {
+    for (let j = 0; j < gobanSize; j += 1) {
       const n = xy2n(i, j, gobanSize);
-      if (goban[i][j] === undefined
-                || updatedGroup.includes(n)) {
-        continue;
-      }
-      const hasLiberties = findLiberties(goban, n).size > 0;
-      if (!hasLiberties) {
-        const capturedCount = captureGroup(goban, n);
-        captured += capturedCount;
+      if (goban[i][j] !== undefined && !updatedGroup.includes(n)) {
+        const hasLiberties = findLiberties(goban, n).size > 0;
+        if (!hasLiberties) {
+          const capturedCount = captureGroup(goban, n);
+          captured += capturedCount;
+        }
       }
     }
   }

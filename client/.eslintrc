@@ -15,7 +15,8 @@
         "node": true
     },
     "rules": {
-        "react/jsx-filename-extension": "off"
+        "react/jsx-filename-extension": "off",
+        "react/destructuring-assignment": "off"
     },
     "overrides": [
         {
