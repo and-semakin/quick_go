@@ -1,0 +1,18 @@
+stages:
+  - build
+  - test
+  - deploy
+
+test_frontend:
+  stage: test
+  image: node:alpine
+  script:
+    - cd client
+    - npm install
+    - ./node_modules/.bin/ject --ci
+
+lint_frontend:
+  stage: test
+  image: node:alpine
+  script:
+    - echo 'kek'
