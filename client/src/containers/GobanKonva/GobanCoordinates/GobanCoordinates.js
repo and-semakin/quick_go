@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Text } from 'react-konva';
 
 const coordinates = [
@@ -9,10 +10,14 @@ const coordinates = [
   'V', 'W', 'X', 'Y', 'Z',
 ];
 
-const gobanCoordinates = (props) => {
+const gobanCoordinates = ({
+  size,
+  borderSize,
+  cellSize,
+}) => {
   const letters = [];
 
-  for (let i = 0; i < props.size; i++) {
+  for (let i = 0; i < size; i += 1) {
     letters.push(
       <Text
         key={`left_${i}`}
@@ -22,9 +27,9 @@ const gobanCoordinates = (props) => {
         align="center"
         verticalAlign="middle"
         x={0}
-        y={props.borderSize + (props.cellSize * (props.size - 1 - i))}
-        width={props.borderSize}
-        height={props.cellSize}
+        y={borderSize + (cellSize * (size - 1 - i))}
+        width={borderSize}
+        height={cellSize}
       />,
     );
     letters.push(
@@ -35,10 +40,10 @@ const gobanCoordinates = (props) => {
         fontSize={10}
         align="center"
         verticalAlign="middle"
-        x={props.borderSize + (props.cellSize) * props.size}
-        y={props.borderSize + (props.cellSize * (props.size - 1 - i))}
-        width={props.borderSize}
-        height={props.cellSize}
+        x={borderSize + (cellSize) * size}
+        y={borderSize + (cellSize * (size - 1 - i))}
+        width={borderSize}
+        height={cellSize}
       />,
     );
     letters.push(
@@ -49,10 +54,10 @@ const gobanCoordinates = (props) => {
         fontSize={10}
         align="center"
         verticalAlign="middle"
-        x={props.borderSize + (props.cellSize * i)}
+        x={borderSize + (cellSize * i)}
         y={0}
-        width={props.cellSize}
-        height={props.borderSize}
+        width={cellSize}
+        height={borderSize}
       />,
     );
     letters.push(
@@ -63,19 +68,25 @@ const gobanCoordinates = (props) => {
         fontSize={10}
         align="center"
         verticalAlign="middle"
-        x={props.borderSize + (props.cellSize * i)}
-        y={props.borderSize + (props.cellSize) * props.size}
-        width={props.cellSize}
-        height={props.borderSize}
+        x={borderSize + (cellSize * i)}
+        y={borderSize + (cellSize) * size}
+        width={cellSize}
+        height={borderSize}
       />,
     );
   }
 
   return (
-        <>
-          {letters}
-        </>
+    <>
+      {letters}
+    </>
   );
+};
+
+gobanCoordinates.propTypes = {
+  size: PropTypes.number.isRequired,
+  borderSize: PropTypes.number.isRequired,
+  cellSize: PropTypes.number.isRequired,
 };
 
 export default gobanCoordinates;
