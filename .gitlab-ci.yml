@@ -9,7 +9,7 @@ test_frontend:
   script:
     - cd client
     - npm install
-    - ./node_modules/.bin/ject --ci
+    - ./node_modules/.bin/jest --ci
 
 lint_frontend:
   stage: test
