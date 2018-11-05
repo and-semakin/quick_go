@@ -21,9 +21,10 @@ build_frontend:
         --tag $CI_REGISTRY_IMAGE/client:$CI_COMMIT_REF_NAME
         --tag $CI_REGISTRY_IMAGE/client:latest
         ./client
-    - docker push $CI_REGISTRY_IMAGE/client:$CI_COMMIT_REF_NAME
     - if [ $CI_COMMIT_REF_NAME = "master" ]; then
         docker push $CI_REGISTRY_IMAGE/client:latest;
+      else
+        docker push $CI_REGISTRY_IMAGE/client:$CI_COMMIT_REF_NAME;
       fi
 
 build_backend:
@@ -40,9 +41,10 @@ build_backend:
         --tag $CI_REGISTRY_IMAGE/server:$CI_COMMIT_REF_NAME
         --tag $CI_REGISTRY_IMAGE/server:latest
         ./server
-    - docker push $CI_REGISTRY_IMAGE/server:$CI_COMMIT_REF_NAME
     - if [ $CI_COMMIT_REF_NAME = "master" ]; then
         docker push $CI_REGISTRY_IMAGE/server:latest;
+      else
+        docker push $CI_REGISTRY_IMAGE/server:$CI_COMMIT_REF_NAME;
       fi
 
 
@@ -60,9 +62,10 @@ build_https:
         --tag $CI_REGISTRY_IMAGE/https:$CI_COMMIT_REF_NAME
         --tag $CI_REGISTRY_IMAGE/https:latest
         ./https
-    - docker push $CI_REGISTRY_IMAGE/https:$CI_COMMIT_REF_NAME
     - if [ $CI_COMMIT_REF_NAME = "master" ]; then
         docker push $CI_REGISTRY_IMAGE/https:latest;
+      else
+        docker push $CI_REGISTRY_IMAGE/https:$CI_COMMIT_REF_NAME;
       fi
 
 test_frontend:
