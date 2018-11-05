@@ -9,7 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import Connection
 
-__all__ = ['game', 'move', 'chat_message']
+__all__ = ['game', 'move', 'chat_message', 'undo_request']
 
 convention = {
     "ix": "ix_%(column_0_label)s",
@@ -52,6 +52,22 @@ move = Table(
     Column('pass', Boolean, server_default="t", nullable=False),
     Column('x', Integer, server_default="0", nullable=False),
     Column('y', Integer, server_default="0", nullable=False),
+)
+
+undo_request = Table(
+    'undo_request', meta,
+
+    Column('id', Integer, primary_key=True),
+    Column(
+        'game_id',
+        Integer,
+        ForeignKey('game.id', ondelete='CASCADE')
+    ),
+    Column('request_time', DateTime, nullable=False),
+    Column('response_time', DateTime, nullable=False),
+    Column('order', Integer, server_default="0", nullable=False),
+    Column('still_actual', Boolean, server_default="t", nullable=False),
+    Column('was_undone', Boolean, server_default="f", nullable=False),
 )
 
 chat_message = Table(
@@ -137,7 +153,7 @@ async def new_game(
     conn,
     goban_size,
     move_submit_enabled=True,
-    undo_requests_enabled=False,
+    undo_requests_enabled=True,
     chat_enabled=False,
 ):
     link_black = secrets.token_hex(16)
@@ -205,3 +221,12 @@ async def game_resign(conn, game_id, is_black):
         game.update(None, values=values).where(game.c.id == game_id)
     )
     return values
+
+async def create_undo_request(conn, game_id, move):
+    await conn.execute(
+        undo_request.insert({
+            'game_id': game_id,
+            'move': move,
+            'request_time': datetime.now(),
+        })
+    )

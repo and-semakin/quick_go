@@ -135,9 +135,9 @@ GobanCell.propTypes = {
   showHover: PropTypes.bool,
   isRecent: PropTypes.bool,
   isLeft: PropTypes.bool,
-  isRight: PropTypes.number,
-  isTop: PropTypes.number,
-  isBottom: PropTypes.number,
+  isRight: PropTypes.bool,
+  isTop: PropTypes.bool,
+  isBottom: PropTypes.bool,
 };
 
 GobanCell.defaultProps = {

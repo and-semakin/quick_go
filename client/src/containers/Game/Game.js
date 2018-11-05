@@ -44,7 +44,9 @@ class Game extends Component {
     resignDialogOpened: false,
     mute: false,
     moveSubmitEnabled: undefined,
-    undoRequestsEnabled: undefined, // eslint-disable-line react/no-unused-state
+    undoRequestsEnabled: undefined,
+    undoRequestSent: undefined,
+    undoRequestDialogOpened: false,
     chatEnabled: undefined, // eslint-disable-line react/no-unused-state
     nextMove: undefined,
     nextGoban: undefined,
@@ -63,6 +65,7 @@ class Game extends Component {
           result,
           move_submit_enabled: moveSubmitEnabled,
           undo_requests_enabled: undoRequestsEnabled,
+          undo_request_sent: undoRequestSent,
           chat_enabled: chatEnabled,
         } = response.data;
 
@@ -111,7 +114,8 @@ class Game extends Component {
           recentMove,
           countPassesInARow,
           moveSubmitEnabled,
-          undoRequestsEnabled, // eslint-disable-line react/no-unused-state
+          undoRequestsEnabled,
+          undoRequestSent,
           chatEnabled, // eslint-disable-line react/no-unused-state
         });
       })
@@ -140,86 +144,79 @@ class Game extends Component {
 
     const data = JSON.parse(event.data);
 
-    switch (data.type) {
-      case 'game_move':
-        (() => {
-          const {
-            move_no: moveNo,
-            x,
-            y,
-            pass,
-          } = data;
-          const { goban, captured, error } = updateGoban(
-            this.state.gobanHistory[this.state.move],
-            this.state.move,
-            x, y, pass,
-          );
-          if (error) {
-            // eslint-disable-next-line no-console
-            console.log(error);
-            return;
-          }
-
-          // ko rule
-          if (
-            !pass && this.state.move > 0
-            && isGobanEqual(goban, this.state.gobanHistory[this.state.move - 1])
-          ) {
-            // eslint-disable-next-line no-console
-            console.log('Ko rule violation detected!');
-            return;
-          }
-
-          // update goban
-          this.setState((state) => {
-            let capturedBlack = state.capturedBlack;
-            let capturedWhite = state.capturedWhite;
-            let countPassesInARow = state.countPassesInARow;
-
-            if (moveNo % 2 === 0) {
-              capturedBlack += captured;
-            } else {
-              capturedWhite += captured;
-            }
-
-            if (pass) {
-              countPassesInARow += 1;
-            } else {
-              countPassesInARow = 0;
-            }
-
-            return {
-              move: moveNo + 1,
-              gobanHistory: state.gobanHistory.concat([goban]),
-              capturedBlack,
-              capturedWhite,
-              recentMove: pass ? [null, null] : [x, y],
-              countPassesInARow,
-              nextMove: undefined,
-              nextGoban: undefined,
-            };
-          });
-        })();
-        break;
-      case 'game_resign':
-        (() => {
-          const {
-            finished,
-            finish_date: finishDate,
-            result,
-          } = data;
-          this.setState({
-            finished,
-            result,
-            finishDate, // eslint-disable-line react/no-unused-state
-            nextMove: undefined,
-            nextGoban: undefined,
-          });
-        })();
-        break;
-      default:
+    if (data.type === 'game_move') {
+      const {
+        move_no: moveNo,
+        x,
+        y,
+        pass,
+      } = data;
+      const { goban, captured, error } = updateGoban(
+        this.state.gobanHistory[this.state.move],
+        this.state.move,
+        x, y, pass,
+      );
+      if (error) {
         // eslint-disable-next-line no-console
-        console.log(`Unexpected message type: ${data.type}`);
+        console.log(error);
+        return;
+      }
+
+      // ko rule
+      if (
+        !pass && this.state.move > 0
+        && isGobanEqual(goban, this.state.gobanHistory[this.state.move - 1])
+      ) {
+        // eslint-disable-next-line no-console
+        console.log('Ko rule violation detected!');
+        return;
+      }
+
+      // update goban
+      this.setState((state) => {
+        let capturedBlack = state.capturedBlack;
+        let capturedWhite = state.capturedWhite;
+        let countPassesInARow = state.countPassesInARow;
+
+        if (moveNo % 2 === 0) {
+          capturedBlack += captured;
+        } else {
+          capturedWhite += captured;
+        }
+
+        if (pass) {
+          countPassesInARow += 1;
+        } else {
+          countPassesInARow = 0;
+        }
+
+        return {
+          move: moveNo + 1,
+          gobanHistory: state.gobanHistory.concat([goban]),
+          capturedBlack,
+          capturedWhite,
+          recentMove: pass ? [null, null] : [x, y],
+          countPassesInARow,
+          nextMove: undefined,
+          nextGoban: undefined,
+        };
+      });
+    } else if (data.type === 'game_resign') {
+      const {
+        finished,
+        finish_date: finishDate,
+        result,
+      } = data;
+      this.setState({
+        finished,
+        result,
+        finishDate, // eslint-disable-line react/no-unused-state
+        nextMove: undefined,
+        nextGoban: undefined,
+      });
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(`Unexpected message type: ${data.type}`);
     }
   }
 
@@ -248,6 +245,28 @@ class Game extends Component {
     this.setState({
       resignDialogOpened: false,
     });
+  }
+
+  showUndoConfirmHandler = () => {
+    this.setState({
+      undoRequestDialogOpened: true,
+    });
+  }
+
+  cancelUndoConfirmHandler = () => {
+    this.setState({
+      undoRequestDialogOpened: false,
+    });
+  }
+
+  undoHandler = () => {
+    this.socket.send(JSON.stringify({
+      type: 'game_undo_move_request',
+    }));
+    this.setState(state => ({
+      undoRequestSent: state.move,
+      undoRequestDialogOpened: false,
+    }));
   }
 
   sendMove = (move, x, y, pass = false) => {
@@ -327,37 +346,54 @@ class Game extends Component {
   }
 
   render() {
+    const currentPlayerToGo = (this.state.move % 2 !== Number(this.state.isBlack));
     const nextMoveColor = (this.state.move % 2 === 0) ? 'black' : 'white';
-    const nextMovePlayer = (this.state.move % 2 !== Number(this.state.isBlack)) ? 'you' : 'your opponent';
+    const nextMovePlayer = currentPlayerToGo ? 'you' : 'your opponent';
     let goban = null;
     let finishButton = null;
     let submitButton = null;
+    let undoButton = null;
 
     if (!this.state.finished) {
-      if (this.state.moveSubmitEnabled && this.state.nextMove) {
-        submitButton = (
+      if (currentPlayerToGo) {
+        if (this.state.moveSubmitEnabled && this.state.nextMove) {
+          submitButton = (
+            <Button
+              color="primary"
+              variant="outlined"
+              onClick={() => this.sendMove(
+                this.state.move,
+                this.state.nextMove[0],
+                this.state.nextMove[1],
+                false,
+              )}
+            >
+              Submit
+            </Button>
+          );
+        } else {
+          submitButton = (
+            <Button
+              disabled={this.state.move % 2 === Number(this.state.isBlack)}
+              color="primary"
+              variant="outlined"
+              onClick={() => this.doMove(-1, -1, true)}
+            >
+              Pass
+            </Button>
+          );
+        }
+      } else if (this.state.undoRequestsEnabled) {
+        undoButton = (
           <Button
+            disabled={Boolean(this.state.undoRequestSent)}
             color="primary"
             variant="outlined"
-            onClick={() => this.sendMove(
-              this.state.move,
-              this.state.nextMove[0],
-              this.state.nextMove[1],
-              false,
-            )}
+            onClick={() => this.showUndoConfirmHandler()}
           >
-            Submit
-          </Button>
-        );
-      } else {
-        submitButton = (
-          <Button
-            disabled={this.state.move % 2 === Number(this.state.isBlack)}
-            color="primary"
-            variant="outlined"
-            onClick={() => this.doMove(-1, -1, true)}
-          >
-            Pass
+            {(this.state.undoRequestSent)
+              ? 'Undo requested'
+              : 'Undo'}
           </Button>
         );
       }
@@ -385,6 +421,7 @@ class Game extends Component {
     const actionButtons = (
       <div className="action-buttons">
         {submitButton}
+        {undoButton}
         {finishButton}
       </div>
     );
@@ -396,6 +433,7 @@ class Game extends Component {
             Move #
             {this.state.move + 1}
             ,
+            {' '}
             <b>{nextMoveColor}</b>
             {' '}
             to go (
@@ -486,6 +524,8 @@ class Game extends Component {
             </IconButton>
           )}
         />
+
+        {/* resign dialog */}
         <Dialog
           open={this.state.resignDialogOpened}
           onClose={this.cancelResignConfirmHandler}
@@ -511,6 +551,38 @@ class Game extends Component {
               color="secondary"
             >
               Resign
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* undo request dialog */}
+
+        <Dialog
+          open={this.state.undoRequestDialogOpened}
+          onClose={this.cancelUndoConfirmHandler}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">Confirm undo request</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Are you sure you want to undo your move?
+              Your opponent can accept or reject your request.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={this.cancelUndoConfirmHandler}
+              color="primary"
+              autoFocus
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={this.undoHandler}
+              color="secondary"
+            >
+              Undo
             </Button>
           </DialogActions>
         </Dialog>

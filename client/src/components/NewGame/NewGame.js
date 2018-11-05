@@ -20,6 +20,7 @@ class NewGame extends Component {
     gobanSize: '9',
     gobanSizes: ['9', '13', '19'],
     moveSubmitEnabled: true,
+    undoRequestsEnabled: true,
     blackLink: '',
     whiteLink: '',
   }
@@ -32,6 +33,7 @@ class NewGame extends Component {
     const postData = new FormData();
     postData.set('goban_size', this.state.gobanSize);
     postData.set('move_submit_enabled', this.state.moveSubmitEnabled);
+    postData.set('undo_requests_enabled', this.state.undoRequestsEnabled);
     axios.post('/api/new', postData).then((response) => {
       this.setState({
         blackLink: response.data.link_black,
@@ -133,6 +135,15 @@ class NewGame extends Component {
                   />
                 )}
                 label="Submit move before send"
+              />
+              <FormControlLabel
+                control={(
+                  <Switch
+                    checked={this.state.undoRequestsEnabled}
+                    onChange={this.handleSwitchToggle('undoRequestsEnabled')}
+                  />
+                )}
+                label="Allow undo"
               />
             </FormGroup>
           </FormControl>
