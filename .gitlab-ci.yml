@@ -83,3 +83,12 @@ lint_frontend:
     - cd client
     - npm install
     - ./node_modules/.bin/eslint src
+
+deploy:
+  stage: deploy
+  only:
+    - master
+  image: alpine:latest
+  script:
+    - apk add curl
+    - curl --user $CI_REDEPLOY_USER:$CI_REDEPLOY_PASSWORD --max-time 900 $CI_REDEPLOY_URL
