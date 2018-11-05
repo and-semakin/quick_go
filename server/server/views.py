@@ -24,12 +24,16 @@ async def list_games(request):
 async def new_game(request):
     data = await request.post()
     goban_size: int = int(data.get('goban_size', 9))
-    move_submit_enabled: bool = to_bool(data.get('move_submit_enabled', 'true'))
+    move_submit_enabled: bool = to_bool(
+        data.get('move_submit_enabled', 'true'))
+    undo_requests_enabled: bool = to_bool(
+        data.get('undo_requests_enabled', 'true'))
     async with request.app['db'].acquire() as conn:
         game = await server.db.new_game(
             conn,
             goban_size,
-            move_submit_enabled
+            move_submit_enabled,
+            undo_requests_enabled,
         )
         return web.json_response({
             'link_black': game['link_black'],
@@ -93,7 +97,9 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
         try:
             game, _, _ = await server.db.get_game(
                 conn,
-                link
+                link,
+                with_moves=False,
+                with_messages=False
             )
         except server.db.RecordNotFound as e:
             raise web.HTTPNotFound(text=str(e))
