@@ -1,7 +1,7 @@
 version: '2.1'
 services:
   https:
-    build: ./https
+    image: registry.gitlab.com/br0ke/quick_go/client
     restart: always
     environment:
       CERTBOT_EMAIL: "and-semakin@ya.ru"
@@ -9,9 +9,9 @@ services:
       - "80:80"
       - "8443:443"
   frontend_nginx:
-    build: ./client
+    image: registry.gitlab.com/br0ke/quick_go/https
   backend:
-    build: ./server
+    image: registry.gitlab.com/br0ke/quick_go/server
     depends_on:
       postgres:
         condition: service_healthy
