@@ -91,4 +91,4 @@ deploy:
   image: alpine:latest
   script:
     - apk add curl
-    - curl --user $CI_REDEPLOY_USER:$CI_REDEPLOY_PASSWORD --max-time 900 $CI_REDEPLOY_URL
+    - curl --silent --user $CI_REDEPLOY_USER:$CI_REDEPLOY_PASSWORD --max-time 900 $CI_REDEPLOY_URL
