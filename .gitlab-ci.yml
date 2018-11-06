@@ -7,6 +7,13 @@ variables:
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
 
+.export_docker_tag: &export_docker_tag |
+  if [[ $CI_BUILD_REF_NAME == "master" ]]; then
+    export DOCKER_TAG=latest;
+  else
+    export DOCKER_TAG="${CI_BUILD_REF_NAME}";
+  fi
+
 build_frontend:
   stage: build
   image: docker:stable
@@ -16,16 +23,12 @@ build_frontend:
     - docker info
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
+    - *export_docker_tag
     - docker build
         --tag client
-        --tag $CI_REGISTRY_IMAGE/client:$CI_COMMIT_REF_NAME
-        --tag $CI_REGISTRY_IMAGE/client:latest
+        --tag $CI_REGISTRY_IMAGE/client:$DOCKER_TAG
         ./client
-    - if [ $CI_COMMIT_REF_NAME = "master" ]; then
-        docker push $CI_REGISTRY_IMAGE/client:latest;
-      else
-        docker push $CI_REGISTRY_IMAGE/client:$CI_COMMIT_REF_NAME;
-      fi
+    - docker push $CI_REGISTRY_IMAGE/client:$DOCKER_TAG;
 
 build_backend:
   stage: build
@@ -36,16 +39,12 @@ build_backend:
     - docker info
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
+    - *export_docker_tag
     - docker build
         --tag server
-        --tag $CI_REGISTRY_IMAGE/server:$CI_COMMIT_REF_NAME
-        --tag $CI_REGISTRY_IMAGE/server:latest
+        --tag $CI_REGISTRY_IMAGE/server:$DOCKER_TAG
         ./server
-    - if [ $CI_COMMIT_REF_NAME = "master" ]; then
-        docker push $CI_REGISTRY_IMAGE/server:latest;
-      else
-        docker push $CI_REGISTRY_IMAGE/server:$CI_COMMIT_REF_NAME;
-      fi
+    - docker push $CI_REGISTRY_IMAGE/server:$DOCKER_TAG;
 
 
 build_https:
@@ -57,16 +56,12 @@ build_https:
     - docker info
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
+    - *export_docker_tag
     - docker build
         --tag https
-        --tag $CI_REGISTRY_IMAGE/https:$CI_COMMIT_REF_NAME
-        --tag $CI_REGISTRY_IMAGE/https:latest
+        --tag $CI_REGISTRY_IMAGE/https:$DOCKER_TAG
         ./https
-    - if [ $CI_COMMIT_REF_NAME = "master" ]; then
-        docker push $CI_REGISTRY_IMAGE/https:latest;
-      else
-        docker push $CI_REGISTRY_IMAGE/https:$CI_COMMIT_REF_NAME;
-      fi
+    - docker push $CI_REGISTRY_IMAGE/https:$DOCKER_TAG;
 
 test_frontend:
   stage: test
@@ -83,6 +78,13 @@ lint_frontend:
     - cd client
     - npm install
     - ./node_modules/.bin/eslint src
+
+lint_bakend:
+  stage: test
+  image: $CI_REGISTRY_IMAGE/server:$DOCKER_TAG;
+  script:
+    - mypy ./server
+    - pylint ./server
 
 deploy:
   stage: deploy

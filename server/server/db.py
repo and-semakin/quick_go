@@ -2,12 +2,12 @@ from typing import Tuple, Any
 from datetime import datetime
 import secrets
 
-import aiopg.sa
-from sqlalchemy import (
+import aiopg.sa  # type: ignore
+from sqlalchemy import (  # type: ignore
     MetaData, Table, Column, ForeignKey,
     Integer, String, DateTime, Boolean, or_,
 )
-from sqlalchemy.engine import Connection
+from sqlalchemy.engine import Connection  # type: ignore
 
 __all__ = ['game', 'move', 'chat_message', 'undo_request']
 

@@ -1,7 +1,7 @@
 import argparse
 import pathlib
 
-from trafaret_config import commandline
+from trafaret_config import commandline  # type: ignore
 
 from server.utils import TRAFARET
 

@@ -1,4 +1,4 @@
-import trafaret as T
+import trafaret as T  # type: ignore
 
 
 TRAFARET = T.Dict({
