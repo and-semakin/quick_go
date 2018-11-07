@@ -14,6 +14,9 @@ variables:
     export DOCKER_TAG="${CI_BUILD_REF_NAME}";
   fi
 
+before_script:
+  - *export_docker_tag
+
 build_frontend:
   stage: build
   image: docker:stable
@@ -23,7 +26,6 @@ build_frontend:
     - docker info
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
-    - *export_docker_tag
     - docker build
         --tag client
         --tag $CI_REGISTRY_IMAGE/client:$DOCKER_TAG
@@ -39,7 +41,6 @@ build_backend:
     - docker info
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
-    - *export_docker_tag
     - docker build
         --tag server
         --tag $CI_REGISTRY_IMAGE/server:$DOCKER_TAG
@@ -56,7 +57,6 @@ build_https:
     - docker info
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
-    - *export_docker_tag
     - docker build
         --tag https
         --tag $CI_REGISTRY_IMAGE/https:$DOCKER_TAG
@@ -79,12 +79,19 @@ lint_frontend:
     - npm install
     - ./node_modules/.bin/eslint src
 
-lint_bakend:
+lint_backend:
   stage: test
-  image: $CI_REGISTRY_IMAGE/server:$DOCKER_TAG;
+  image: $CI_REGISTRY_IMAGE/server:$DOCKER_TAG
   script:
     - mypy ./server
     - pylint ./server
+
+
+test_backend:
+  stage: test
+  image: $CI_REGISTRY_IMAGE/server:$DOCKER_TAG
+  script:
+    - py.test
 
 deploy:
   stage: deploy

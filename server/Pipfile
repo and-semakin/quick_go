@@ -11,6 +11,7 @@ sqlalchemy = "*"
 aiohttp = "*"
 trafaret-config = "*"
 alembic = "*"
+pytest = "*"
 
 [dev-packages]
 aiohttp-devtools = "*"
