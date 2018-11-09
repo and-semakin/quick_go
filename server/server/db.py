@@ -150,12 +150,20 @@ async def get_game(
 
 
 async def new_game(
-    conn,
-    goban_size,
-    move_submit_enabled=True,
-    undo_requests_enabled=True,
-    chat_enabled=False,
-):
+        conn,
+        goban_size,
+        move_submit_enabled=True,
+        undo_requests_enabled=True,
+        chat_enabled=False,
+    ):
+    """Create new game.
+
+    :param conn: psycopg2 connection to use
+    :param goban_size: number of points in a row and a column in goban
+    :param move_submit_enabled: force users to submit their moves before send
+    :param undo_requests_enabled: allow users to undo their moves
+    :param chat_enabled: use chat in this game
+    """
     link_black = secrets.token_hex(16)
     link_white = secrets.token_hex(16)
     result = await conn.execute(
@@ -171,8 +179,8 @@ async def new_game(
             'chat_enabled': chat_enabled,
         }).returning(game.c.link_black, game.c.link_white)
     )
-    new_game = await result.fetchone()
-    return new_game
+    created_game = await result.fetchone()
+    return created_game
 
 
 async def do_move(conn, game_id, x=0, y=0, _pass=True):

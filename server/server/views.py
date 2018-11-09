@@ -101,8 +101,8 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                 with_moves=False,
                 with_messages=False
             )
-        except server.db.RecordNotFound as e:
-            raise web.HTTPNotFound(text=str(e))
+        except server.db.RecordNotFound as ex:
+            raise web.HTTPNotFound(text=str(ex))
 
     ws: web.WebSocketResponse = web.WebSocketResponse(heartbeat=10, receive_timeout=20)
     await ws.prepare(request)
