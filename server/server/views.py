@@ -104,7 +104,7 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
         except server.db.RecordNotFound as e:
             raise web.HTTPNotFound(text=str(e))
 
-    ws: web.Response = web.WebSocketResponse(heartbeat=10, receive_timeout=20)
+    ws: web.WebSocketResponse = web.WebSocketResponse(heartbeat=10, receive_timeout=20)
     await ws.prepare(request)
 
     game_id: int = game['id']

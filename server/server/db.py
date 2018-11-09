@@ -1,4 +1,4 @@
-from typing import Tuple, Any
+from typing import Tuple, Any, List
 from datetime import datetime
 import secrets
 
@@ -127,8 +127,8 @@ async def get_game(
         msg = "Game with link: {} does not exists"
         raise RecordNotFound(msg.format(link))
 
-    moves = []
-    chat_messages = []
+    moves: List[Any] = []
+    chat_messages: List[Any] = []
 
     if with_moves:
         result = await conn.execute(
