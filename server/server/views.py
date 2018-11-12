@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, List, Callable, Any
 import logging
 import json
 import functools
@@ -82,7 +82,13 @@ async def get_game(request):
         })
 
 
-async def notify_all(msg, ws_list, logger=logging):
+async def notify_all(msg: Any, ws_list: List[web.WebSocketResponse], logger=logging):
+    """Notify all active WebSocket clients.
+
+    :param msg: message to send
+    :param ws_list: list of WebSocket sessions
+    :param logger: logger
+    """
     for i, ws in enumerate(ws_list):
         logger.debug(
             f'Sending to {i} client socket (closed: {ws.closed}, close_code: {ws.close_code})...')
@@ -90,7 +96,77 @@ async def notify_all(msg, ws_list, logger=logging):
     logger.debug(f'Notifying all done.')
 
 
+def parse_params(
+        expected_fields: Dict[str, Callable],
+        msg: Dict[str, Any],
+        logger=logging
+    ) -> Dict[str, Any]:
+    """Parse params of WebSocket message.
+
+    :param expected_fields: fields expected in message
+    :param msg: JSON message
+    :param logger: logger
+    :returns: parsed message
+    """
+    params: Dict[str, Any] = {}
+
+    for param, converter in expected_fields.items():
+        if param not in msg:
+            raise ValueError
+        try:
+            params[param] = converter(msg[param])
+        except Exception as ex:
+            text = str(ex)
+            logger.info('Can\'t parse data: ' + text)
+            raise ValueError(text)
+
+    return params
+
+
+async def game_move_handler(request, logger, game_id, x, y, _pass):
+    """Game move handler."""
+    # TODO: add checks
+
+    # writing update to database
+    async with request.app['db'].acquire() as conn:
+        move_no, x, y, _pass = await server.db.do_move(conn, game_id, x, y, _pass)
+
+    # notifying users online about update
+    await notify_all(
+        {
+            'type': 'game_move',
+            'move_no': move_no,
+            'x': x,
+            'y': y,
+            'pass': _pass,
+        },
+        request.app['ws'][game_id],
+        logger=logger
+    )
+
+
+async def game_resign_handler(request, logger, game_id: int, is_black: bool):
+    """Game resign handler."""
+    # TODO: add checks
+
+    # writing update to database
+    async with request.app['db'].acquire() as conn:
+        resign_values = await server.db.game_resign(conn, game_id, is_black)
+
+    # notifying users online about update
+    await notify_all(
+        {
+            'type': 'game_resign',
+            **resign_values,
+            'finish_date': resign_values['finish_date'].timestamp(),
+        },
+        request.app['ws'][game_id],
+        logger=logger
+    )
+
+
 async def websocket(request: web.Request) -> web.WebSocketResponse:
+    """WebSocket handler."""
     link: str = request.match_info['link']
 
     async with request.app['db'].acquire() as conn:
@@ -142,44 +218,19 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
             if msg_type == 'game_move':
                 # getting data
                 try:
-                    move_no, x, y = int(data['move_no']), int(
-                        data['x']), int(data['y'])
-                    _pass = bool(data['pass'])
-                except ValueError:
+                    data['_pass'] = data['pass']
+                    params = parse_params({
+                        'move_no': int,
+                        'x': int,
+                        'y': int,
+                        '_pass': bool
+                    }, data)
+                    await game_move_handler(request, ws_logger, **params)
+                except (ValueError, LookupError):
                     ws_logger.debug(f'Can\'t parse data: {data}')
                     continue
-
-                # writing update to database
-                async with request.app['db'].acquire() as conn:
-                    move_no, x, y, _pass = await server.db.do_move(conn, game_id, x, y, _pass)
-
-                # notifying users online about update
-                await notify_all(
-                    {
-                        'type': 'game_move',
-                        'move_no': move_no,
-                        'x': x,
-                        'y': y,
-                        'pass': _pass,
-                    },
-                    request.app['ws'][game_id],
-                    logger=ws_logger
-                )
             elif msg_type == 'game_resign':
-                # writing update to database
-                async with request.app['db'].acquire() as conn:
-                    resign_values = await server.db.game_resign(conn, game_id, is_black)
-
-                # notifying users online about update
-                await notify_all(
-                    {
-                        'type': 'game_resign',
-                        **resign_values,
-                        'finish_date': resign_values['finish_date'].timestamp(),
-                    },
-                    request.app['ws'][game_id],
-                    logger=ws_logger
-                )
+                await game_resign_handler(request, ws_logger, game_id, is_black)
             elif msg_type == 'game_finish':
                 pass
             elif msg_type == 'chat_message':
