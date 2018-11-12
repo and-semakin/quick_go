@@ -109,11 +109,11 @@ async def close_pg(app):
 
 
 async def get_game(
-    conn: Connection,
-    link: str,
-    with_moves: bool = False,
-    with_messages: bool = False
-) -> Tuple[Any, Any, Any]:
+        conn: Connection,
+        link: str,
+        with_moves: bool = False,
+        with_messages: bool = False
+    ) -> Tuple[Any, Any, Any]:
     """Get game info, moves and chat messages."""
     result = await conn.execute(
         game.select()

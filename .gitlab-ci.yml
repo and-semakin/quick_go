@@ -17,7 +17,7 @@ variables:
 before_script:
   - *export_docker_tag
 
-build_frontend:
+build_client:
   stage: build
   image: docker:stable
   services:
@@ -33,7 +33,7 @@ build_frontend:
         ./client
     - docker push $CI_REGISTRY_IMAGE/client:$DOCKER_TAG;
 
-build_backend:
+build_server:
   stage: build
   image: docker:stable
   services:
@@ -66,7 +66,7 @@ build_https:
         ./https
     - docker push $CI_REGISTRY_IMAGE/https:$DOCKER_TAG;
 
-test_frontend:
+test_client:
   stage: test
   image: node:alpine
   script:
@@ -74,7 +74,7 @@ test_frontend:
     - npm install
     - ./node_modules/.bin/jest --ci --coverage --colors
 
-lint_frontend:
+lint_client:
   stage: test
   image: node:alpine
   script:
@@ -82,7 +82,7 @@ lint_frontend:
     - npm install
     - ./node_modules/.bin/eslint src
 
-lint_backend:
+lint_server:
   stage: test
   image: docker:stable
   services:
@@ -96,7 +96,7 @@ lint_backend:
     - docker run $CI_REGISTRY_IMAGE/server:$DOCKER_TAG mypy ./server
     - docker run $CI_REGISTRY_IMAGE/server:$DOCKER_TAG pylint ./server
 
-test_backend:
+test_server:
   stage: test
   image: docker:stable
   services:
