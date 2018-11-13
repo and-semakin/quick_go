@@ -12,6 +12,7 @@ aiohttp = "*"
 trafaret-config = "*"
 alembic = "*"
 pytest = "*"
+pytest-asyncio = "*"
 
 [dev-packages]
 aiohttp-devtools = "*"

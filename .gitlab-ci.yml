@@ -107,7 +107,7 @@ test_server:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
   script:
     - docker pull $CI_REGISTRY_IMAGE/server:$DOCKER_TAG
-    - docker run $CI_REGISTRY_IMAGE/server:$DOCKER_TAG py.test
+    - docker run $CI_REGISTRY_IMAGE/server:$DOCKER_TAG PYTHONPATH=. py.test
 
 deploy:
   stage: deploy

@@ -8,7 +8,7 @@ import sys
 from aiohttp import web, WSMsgType
 
 import server.db
-from server.utils import to_bool
+from server.utils import to_bool, parse_params
 
 loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
@@ -94,33 +94,6 @@ async def notify_all(msg: Any, ws_list: List[web.WebSocketResponse], logger=logg
             f'Sending to {i} client socket (closed: {ws.closed}, close_code: {ws.close_code})...')
         await ws.send_json(msg)
     logger.debug(f'Notifying all done.')
-
-
-def parse_params(
-        expected_fields: Dict[str, Callable],
-        msg: Dict[str, Any],
-        logger=logging
-    ) -> Dict[str, Any]:
-    """Parse params of WebSocket message.
-
-    :param expected_fields: fields expected in message
-    :param msg: JSON message
-    :param logger: logger
-    :returns: parsed message
-    """
-    params: Dict[str, Any] = {}
-
-    for param, converter in expected_fields.items():
-        if param not in msg:
-            raise ValueError
-        try:
-            params[param] = converter(msg[param])
-        except Exception as ex:
-            text = str(ex)
-            logger.info('Can\'t parse data: ' + text)
-            raise ValueError(text)
-
-    return params
 
 
 async def game_move_handler(request, logger, game_id, x, y, _pass):
