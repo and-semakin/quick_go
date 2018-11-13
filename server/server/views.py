@@ -96,7 +96,7 @@ async def notify_all(msg: Any, ws_list: List[web.WebSocketResponse], logger=logg
     logger.debug(f'Notifying all done.')
 
 
-async def game_move_handler(request, logger, game_id, x, y, _pass):
+async def game_move_handler(request, logger, game_id, move_no, x, y, _pass):
     """Game move handler."""
     # TODO: add checks
 
@@ -198,7 +198,7 @@ async def websocket(request: web.Request) -> web.WebSocketResponse:
                         'y': int,
                         '_pass': bool
                     }, data)
-                    await game_move_handler(request, ws_logger, **params)
+                    await game_move_handler(request, ws_logger, game_id, **params)
                 except (ValueError, LookupError):
                     ws_logger.debug(f'Can\'t parse data: {data}')
                     continue
